@@ -35,14 +35,8 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { address: { contains: search, mode: 'insensitive' } },
-        { city: { contains: search, mode: 'insensitive' } }
-      ]
-    }
+    // Don't filter in Prisma when search exists - we'll filter client-side to include amenities
+    // This is because Prisma can't search within JSON arrays efficiently
     
     if (amenities.length > 0) {
       where.amenities = {
@@ -51,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get spaces with business info and reviews
-    const spaces = await prisma.space.findMany({
+    let spaces = await prisma.space.findMany({
       where,
       include: {
         businessInfo: {
@@ -70,6 +64,29 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc'
       }
     })
+
+    // Apply search filter for ALL fields including amenities
+    if (search) {
+      const searchLower = search.toLowerCase()
+      spaces = spaces.filter(space => {
+        // Check database fields
+        const matchesDatabaseFields = 
+          space.name.toLowerCase().includes(searchLower) ||
+          space.description.toLowerCase().includes(searchLower) ||
+          space.address.toLowerCase().includes(searchLower) ||
+          space.city.toLowerCase().includes(searchLower) ||
+          space.pincode.toLowerCase().includes(searchLower) ||
+          (space.companyName && space.companyName.toLowerCase().includes(searchLower))
+        
+        // Check amenities (JSON array)
+        const amenities = Array.isArray(space.amenities) ? space.amenities : JSON.parse(space.amenities as any)
+        const matchesAmenities = amenities.some((amenity: string) => 
+          amenity.toLowerCase().includes(searchLower)
+        )
+        
+        return matchesDatabaseFields || matchesAmenities
+      })
+    }
 
     // Transform spaces data for frontend
     const transformedSpaces = spaces.map(space => {

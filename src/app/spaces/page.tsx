@@ -844,15 +844,28 @@ function SpacesPageContent() {
   useEffect(() => {
     let filtered = spaces
 
-    // Search query filter
+    // Search query filter (only applied if not already filtered by API)
+    // Note: API already filters by searchQuery, so this is a client-side safety check
     if (searchQuery) {
-      filtered = filtered.filter(
-        (space) =>
-          space.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          space.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          space.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          space.pincode.includes(searchQuery),
-      )
+      const searchLower = searchQuery.toLowerCase()
+      filtered = filtered.filter((space) => {
+        // Search in name, description, address, pincode
+        const matchesText = 
+          space.name.toLowerCase().includes(searchLower) ||
+          space.description.toLowerCase().includes(searchLower) ||
+          space.address.toLowerCase().includes(searchLower) ||
+          space.pincode.toLowerCase().includes(searchLower)
+        
+        // Search in amenities
+        const matchesAmenities = space.amenities.some(amenity => 
+          amenity.toLowerCase().includes(searchLower)
+        )
+        
+        // Also search in city
+        const matchesCity = space.city.toLowerCase().includes(searchLower)
+        
+        return matchesText || matchesAmenities || matchesCity
+      })
     }
 
     // City filter
