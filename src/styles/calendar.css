@@ -1,0 +1,350 @@
+/* Custom calendar styling for selected dates - more specific selectors */
+.calendar-selected-white button[data-selected-single="true"] {
+  background-color: white !important;
+  color: black !important;
+  font-weight: 600 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+}
+
+.calendar-selected-white button[data-selected-single="true"]:hover {
+  background-color: #f3f4f6 !important;
+  color: black !important;
+}
+
+.calendar-selected-white button[data-selected-single="true"]:focus {
+  background-color: white !important;
+  color: black !important;
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+
+/* For range selections */
+.calendar-selected-white button[data-range-start="true"],
+.calendar-selected-white button[data-range-end="true"] {
+  background-color: white !important;
+  color: black !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+}
+
+.calendar-selected-white button[data-range-middle="true"] {
+  background-color: #f8f9fa !important;
+  color: black !important;
+  font-weight: 500 !important;
+}
+
+/* Remove today's date default styling when not selected - multiple approaches */
+.calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]) {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+.calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]):hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Override the default today styling from the calendar component */
+.calendar-selected-white .rdp-day_today:not([data-selected-single="true"]) {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+.calendar-selected-white .rdp-day_today:not([data-selected-single="true"]):hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Additional specificity for react-day-picker */
+.calendar-selected-white .rdp button[data-today="true"]:not([data-selected-single="true"]) {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+.calendar-selected-white .rdp button[data-today="true"]:not([data-selected-single="true"]):hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Force override any existing today styles */
+.calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Global overrides for calendar styling */
+.calendar-selected-white * {
+  --rdp-day_selected-bg: white;
+  --rdp-day_selected-color: black;
+  --rdp-day_selected-radius: 8px;
+}
+
+/* Direct button styling with maximum specificity */
+.calendar-selected-white button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Today's date when not selected */
+.calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Ultra-specific selectors to override any existing styles */
+.calendar-selected-white .rdp button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.calendar-selected-white .rdp button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Target the actual day buttons more specifically */
+.calendar-selected-white [data-slot="calendar"] button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.calendar-selected-white [data-slot="calendar"] button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Global calendar styling that should work regardless of specificity */
+.calendar-selected-white {
+  --selected-bg: white;
+  --selected-color: black;
+  --selected-radius: 8px;
+}
+
+.calendar-selected-white button[data-selected-single="true"] {
+  background: var(--selected-bg) !important;
+  color: var(--selected-color) !important;
+  border-radius: var(--selected-radius) !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Force override with maximum specificity */
+html .calendar-selected-white button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+html .calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Remove debug styles and use correct selectors */
+
+/* Use the correct data attributes that the calendar actually uses */
+.calendar-selected-white button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Target the actual classes used by react-day-picker */
+.calendar-selected-white .rdp-day_selected {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.calendar-selected-white .rdp-day_today:not(.rdp-day_selected) {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Override the bg-accent class that's applied to today's date */
+.calendar-selected-white .rdp-day_today:not(.rdp-day_selected) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Target the specific button elements */
+.calendar-selected-white button.rdp-day_selected {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.calendar-selected-white button.rdp-day_today:not(.rdp-day_selected) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Force override with maximum specificity */
+.calendar-selected-white .rdp button.rdp-day_selected {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.calendar-selected-white .rdp button.rdp-day_today:not(.rdp-day_selected) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Target all possible selectors for selected dates */
+.calendar-selected-white [data-selected-single="true"],
+.calendar-selected-white .rdp-day_selected,
+.calendar-selected-white button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Target all possible selectors for today's date when not selected */
+.calendar-selected-white [data-today="true"]:not([data-selected-single="true"]),
+.calendar-selected-white .rdp-day_today:not(.rdp-day_selected),
+.calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Ultra-specific override for any existing styles */
+html body .calendar-selected-white button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+html body .calendar-selected-white button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Additional class-based targeting */
+.custom-calendar-styling button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.custom-calendar-styling button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Target the actual button elements with maximum specificity */
+.custom-calendar-styling .rdp button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.custom-calendar-styling .rdp button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Try a different approach with more specific selectors */
+.custom-calendar-styling button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.custom-calendar-styling button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Target the actual button elements with maximum specificity */
+.custom-calendar-styling .rdp button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.custom-calendar-styling .rdp button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Force override with maximum specificity */
+html body .custom-calendar-styling button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+html body .custom-calendar-styling button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Try targeting the actual button elements with any possible selector */
+.custom-calendar-styling button {
+  /* Remove any default styling */
+}
+
+.custom-calendar-styling button[data-selected-single="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.custom-calendar-styling button[data-today="true"]:not([data-selected-single="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Target any button that might be selected */
+.custom-calendar-styling button[aria-selected="true"] {
+  background: white !important;
+  color: black !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Target any button that might be today */
+.custom-calendar-styling button[aria-current="date"]:not([aria-selected="true"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit !important;
+}

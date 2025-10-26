@@ -1,0 +1,228 @@
+'use client'
+
+import { Suspense, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Eye, EyeOff } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+function SignInContent() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnUrl = searchParams.get('returnUrl')
+  const supabase = createClient()
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        setError(error.message)
+      } else {
+        // Router refresh to update server-side state
+        router.refresh()
+        
+        if (returnUrl) {
+          router.push(decodeURIComponent(returnUrl))
+        } else {
+          router.push('/dashboard')
+        }
+      }
+    } catch (err) {
+      setError('An unexpected error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white flex items-center justify-center py-8">
+      <div className="max-w-2xl w-full mx-4">
+        {/* Logo */}
+        <div className="text-center mb-12">
+          <Link href="/" className="inline-flex items-center space-x-3">
+            <div className="w-24 h-24  flex items-center justify-center ">
+              <img src="/logo.svg" alt="Clubicles Logo" className="w-14 h-14" />
+            </div>
+            <span className="font-orbitron text-4xl md:text-6xl font-black tracking-wider text-white">
+              CLUBICLES
+            </span>
+          </Link>
+        </div>
+
+        {currentStep === 'signin' && (
+          <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 rounded-2xl shadow-2xl">
+            <CardHeader className="text-center pb-6">
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                Welcome Back
+              </CardTitle>
+              <p className="text-gray-300 mt-2">Sign in to your account</p>
+            </CardHeader>
+            <CardContent className="p-8">
+              {/* User Type Selection Tabs */}
+              <div className="flex mb-6 bg-white/10 backdrop-blur-sm rounded-xl p-1">
+                <button
+                  type="button"
+                  onClick={() => setUserType('individual')}
+                  className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 ${
+                    userType === 'individual'
+                      ? 'bg-white text-black shadow-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Users className="h-4 w-4" />
+                  Individuals
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType('space-owner')}
+                  className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 ${
+                    userType === 'space-owner'
+                      ? 'bg-white text-black shadow-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Building className="h-4 w-4" />
+                  Space Owners
+                </button>
+              </div>
+
+              <form onSubmit={handleSignInSubmit} className="space-y-6">
+                <div>
+                  <Label htmlFor="email" className="text-white font-medium">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="mt-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-200"
+                    required
+                  />
+                </div>
+
+                {userType === 'individual' && (
+                  <div>
+                    <ProfessionalRoleSelector
+                      selectedRole={professionalRole}
+                      onRoleSelect={setProfessionalRole}
+                    />
+                  </div>
+                )}
+
+                <Button 
+                  type="submit" 
+                  className="w-full bg-white text-black font-semibold hover:bg-gray-100 hover:scale-105 h-12 rounded-xl transition-all duration-200 shadow-lg"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Sending OTP...' : 'Send OTP'}
+                </Button>
+
+                <div className="text-center">
+                  <p className="text-gray-300">
+                    Don't have an account?{' '}
+                    <Link href="/signup" className="text-white hover:underline font-medium">
+                      Sign up here
+                    </Link>
+                  </p>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {currentStep === 'otp' && (
+          <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 rounded-2xl shadow-2xl max-w-md mx-auto">
+            <CardHeader className="text-center pb-6">
+              <CardTitle className="text-2xl font-bold text-white">Verify Your Email</CardTitle>
+              <p className="text-gray-300 mt-2">
+                We've sent a 6-digit code to<br />
+                <strong className="text-white">{email}</strong>
+              </p>
+            </CardHeader>
+            <CardContent className="p-8">
+              <form onSubmit={handleOTPVerify} className="space-y-6">
+                <div>
+                  <Label htmlFor="otp" className="text-white font-medium">Enter OTP</Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="000000"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="mt-2 text-center text-lg tracking-widest bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-200"
+                    maxLength={6}
+                    required
+                  />
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full bg-white text-black font-semibold hover:bg-gray-100 hover:scale-105 h-12 rounded-xl transition-all duration-200 shadow-lg"
+                  disabled={isLoading || otp.length !== 6}
+                >
+                  {isLoading ? 'Verifying...' : 'Verify OTP'}
+                </Button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep('signin')}
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    ← Back to sign in
+                  </button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {currentStep === 'success' && (
+          <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 rounded-2xl shadow-2xl max-w-md mx-auto">
+            <CardContent className="pt-12 pb-8">
+              <div className="text-center">
+                <div className="text-6xl mb-6">🎉</div>
+                <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                  Welcome Back!
+                </h2>
+                <p className="text-gray-300 mb-6">
+                  You've been signed in successfully. Redirecting to your dashboard...
+                </p>
+                
+                <div className="animate-pulse flex justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-white to-gray-300 rounded-full"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
+  )
+}

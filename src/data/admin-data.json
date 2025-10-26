@@ -1,0 +1,208 @@
+{
+  "spaces": [
+    {
+      "id": "space_1",
+      "owner_id": "owner_1",
+      "name": "Innovation Hub Delhi",
+      "description": "Modern co-working space in Connaught Place with cutting-edge facilities",
+      "address": "Connaught Place, New Delhi",
+      "city": "Delhi",
+      "pincode": "110001",
+      "total_seats": 75,
+      "available_seats": 65,
+      "price_per_hour": 180,
+      "price_per_day": 1400,
+      "amenities": ["WiFi", "Coffee", "Meeting Rooms", "Parking", "Security", "AC"],
+      "images": ["/api/placeholder/400/300"],
+      "status": "pending",
+      "created_at": "2025-01-08T10:00:00Z",
+      "updated_at": "2025-01-08T10:00:00Z",
+      "owner_name": "Rajesh Kumar",
+      "owner_email": "rajesh@example.com",
+      "business_info": {
+        "gst_number": "07ABCDE1234F1Z5",
+        "pan_number": "ABCDE1234F",
+        "business_type": "Private Limited Company"
+      }
+    },
+    {
+      "id": "space_2",
+      "owner_id": "owner_2", 
+      "name": "Creative Workspace Mumbai",
+      "description": "Artistic workspace for creative professionals in Bandra",
+      "address": "Bandra West, Mumbai",
+      "city": "Mumbai",
+      "pincode": "400050",
+      "total_seats": 40,
+      "available_seats": 35,
+      "price_per_hour": 150,
+      "price_per_day": 1200,
+      "amenities": ["WiFi", "Design Tools", "Print Station", "Coffee", "AC"],
+      "images": ["/api/placeholder/400/300"],
+      "status": "approved",
+      "created_at": "2025-01-07T14:30:00Z",
+      "updated_at": "2025-01-08T09:15:00Z",
+      "owner_name": "Priya Sharma",
+      "owner_email": "priya@example.com",
+      "business_info": {
+        "gst_number": "27FGHIJ5678G2Z0",
+        "pan_number": "FGHIJ5678G",
+        "business_type": "Partnership"
+      }
+    },
+    {
+      "id": "space_3",
+      "owner_id": "owner_3",
+      "name": "Tech Park Bengaluru",
+      "description": "High-tech workspace in Electronic City for IT professionals",
+      "address": "Electronic City Phase 1, Bengaluru",
+      "city": "Bengaluru", 
+      "pincode": "560100",
+      "total_seats": 120,
+      "available_seats": 85,
+      "price_per_hour": 200,
+      "price_per_day": 1600,
+      "amenities": ["WiFi", "Coffee", "Meeting Rooms", "Parking", "Security", "AC", "Cafeteria"],
+      "images": ["/api/placeholder/400/300"],
+      "status": "rejected",
+      "created_at": "2025-01-06T16:45:00Z",
+      "updated_at": "2025-01-07T11:20:00Z",
+      "owner_name": "Arjun Patel",
+      "owner_email": "arjun@example.com",
+      "business_info": {
+        "gst_number": "29KLMNO9012H3Z1",
+        "pan_number": "KLMNO9012H",
+        "business_type": "Sole Proprietorship"
+      },
+      "rejection_reason": "Incomplete documentation provided"
+    }
+  ],
+  "users": [
+    {
+      "id": "user_1",
+      "email": "john.doe@example.com",
+      "role": "user",
+      "user_type": "individual",
+      "created_at": "2025-01-08T09:00:00Z",
+      "updated_at": "2025-01-08T09:00:00Z",
+      "profile": {
+        "full_name": "John Doe",
+        "phone": "+91 9876543210",
+        "city": "Mumbai",
+        "membership_type": "professional",
+        "professional_role": "violet"
+      },
+      "status": "active"
+    },
+    {
+      "id": "user_2", 
+      "email": "sarah.kumar@example.com",
+      "role": "user",
+      "user_type": "individual",
+      "created_at": "2025-01-07T16:20:00Z",
+      "updated_at": "2025-01-07T16:20:00Z",
+      "profile": {
+        "full_name": "Sarah Kumar",
+        "phone": "+91 9876543211",
+        "city": "Delhi",
+        "membership_type": "professional",
+        "professional_role": "indigo"
+      },
+      "status": "active"
+    },
+    {
+      "id": "owner_1",
+      "email": "rajesh@example.com", 
+      "role": "owner",
+      "user_type": "space-owner",
+      "created_at": "2025-01-05T11:15:00Z",
+      "updated_at": "2025-01-08T10:00:00Z",
+      "profile": {
+        "full_name": "Rajesh Kumar",
+        "phone": "+91 9876543220",
+        "city": "Delhi",
+        "business_name": "Kumar Co-working Solutions"
+      },
+      "status": "pending_verification",
+      "verification_status": "pending",
+      "business_verification": {
+        "gst_number": "07ABCDE1234F1Z5",
+        "pan_number": "ABCDE1234F", 
+        "business_type": "Private Limited Company",
+        "documents_submitted": ["gst_certificate", "pan_card", "address_proof"],
+        "verification_date": null
+      }
+    },
+    {
+      "id": "owner_2",
+      "email": "priya@example.com",
+      "role": "owner", 
+      "user_type": "space-owner",
+      "created_at": "2025-01-04T13:45:00Z",
+      "updated_at": "2025-01-08T09:15:00Z",
+      "profile": {
+        "full_name": "Priya Sharma",
+        "phone": "+91 9876543221",
+        "city": "Mumbai",
+        "business_name": "Creative Spaces Ltd"
+      },
+      "status": "active",
+      "verification_status": "verified",
+      "business_verification": {
+        "gst_number": "27FGHIJ5678G2Z0",
+        "pan_number": "FGHIJ5678G",
+        "business_type": "Partnership",
+        "documents_submitted": ["gst_certificate", "pan_card", "address_proof", "partnership_deed"],
+        "verification_date": "2025-01-05T10:30:00Z"
+      }
+    }
+  ],
+  "verification_requests": [
+    {
+      "id": "verify_1",
+      "user_id": "owner_1",
+      "type": "business_verification",
+      "status": "pending",
+      "submitted_at": "2025-01-08T10:00:00Z",
+      "documents": {
+        "gst_certificate": "/documents/gst_cert_1.pdf",
+        "pan_card": "/documents/pan_1.pdf",
+        "address_proof": "/documents/address_1.pdf"
+      },
+      "business_info": {
+        "company_name": "Kumar Co-working Solutions",
+        "gst_number": "07ABCDE1234F1Z5",
+        "pan_number": "ABCDE1234F",
+        "business_type": "Private Limited Company",
+        "address": "123 Business Park, Delhi"
+      }
+    },
+    {
+      "id": "verify_2",
+      "user_id": "owner_3",
+      "type": "business_re_verification", 
+      "status": "pending",
+      "submitted_at": "2025-01-07T15:30:00Z",
+      "reason": "Updated business address and GST details",
+      "documents": {
+        "updated_gst_certificate": "/documents/gst_cert_updated.pdf",
+        "address_proof_new": "/documents/address_new.pdf"
+      },
+      "previous_verification_date": "2024-12-01T10:00:00Z"
+    }
+  ],
+  "stats": {
+    "total_spaces": 156,
+    "pending_spaces": 23,
+    "approved_spaces": 120,
+    "rejected_spaces": 13,
+    "total_users": 2847,
+    "individual_users": 2145,
+    "space_owners": 702,
+    "pending_verifications": 45,
+    "total_bookings": 8934,
+    "total_revenue": 12850000,
+    "platform_revenue": 1285000,
+    "monthly_growth": 18.5
+  }
+}

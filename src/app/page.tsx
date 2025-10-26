@@ -1,0 +1,1312 @@
+'use client'
+
+import React, { useState, useRef, useEffect } from 'react'
+import { Calendar, MapPin, Users, Wifi, Coffee, Car, Shield, Star, Clock, Search, ChevronDown, CheckCircle, Zap, Globe, Headphones } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { useAuth } from '@/contexts/AuthContext'
+import Link from 'next/link'
+import { motion, useInView, useAnimation } from 'framer-motion'
+import { SharedNavigation } from '@/components/shared/navigation'
+import DataService from '@/lib/data-service'
+
+type SearchSuggestion = {
+  type: string
+  value: string
+  category: string
+  location: string
+}
+
+// Get popular cities from DataService
+const POPULAR_CITIES = DataService.getPopularCities()
+
+export default function HomePage() {
+  const { user } = useAuth()
+  const [selectedCity, setSelectedCity] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [filteredSuggestions, setFilteredSuggestions] = useState<SearchSuggestion[]>([])
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+
+
+  // Fetch suggestions from API based on search query
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.length > 1) {
+        setIsLoadingSuggestions(true)
+        try {
+          const response = await fetch(`/api/search-suggestions?q=${encodeURIComponent(searchQuery)}`)
+          const data = await response.json()
+          
+          if (data.suggestions) {
+            setFilteredSuggestions(data.suggestions)
+            setShowSuggestions(data.suggestions.length > 0)
+          }
+        } catch (error) {
+          console.error('Error fetching search suggestions:', error)
+          setFilteredSuggestions([])
+          setShowSuggestions(false)
+        } finally {
+          setIsLoadingSuggestions(false)
+        }
+      } else {
+        setFilteredSuggestions([])
+        setShowSuggestions(false)
+        setIsLoadingSuggestions(false)
+      }
+      setSelectedSuggestionIndex(-1)
+    }
+
+    const debounceTimer = setTimeout(fetchSuggestions, 300) // Debounce API calls
+    return () => clearTimeout(debounceTimer)
+  }, [searchQuery])
+
+  const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+    setSearchQuery(suggestion.value)
+    setShowSuggestions(false)
+    setSelectedSuggestionIndex(-1)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedSuggestionIndex(prev => 
+        prev < filteredSuggestions.length - 1 ? prev + 1 : prev
+      )
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (selectedSuggestionIndex >= 0) {
+        handleSuggestionClick(filteredSuggestions[selectedSuggestionIndex])
+      } else {
+        handleSearch()
+      }
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false)
+      setSelectedSuggestionIndex(-1)
+    }
+  }
+
+  const handleSearch = () => {
+    const query = new URLSearchParams()
+    if (selectedCity) query.set('city', selectedCity)
+    if (searchQuery) query.set('search', searchQuery)
+    
+    window.location.href = `/spaces?${query.toString()}`
+  }
+
+  // Procedural Maze Background
+  useEffect(() => {
+    const canvas = document.getElementById('mazeCanvas') as HTMLCanvasElement
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let animationId: number
+    let mazeGenerated = false
+
+    // Canvas setup
+    const CELL_SIZE = 50  // Doubled from 25 to 50
+    const LINE_WIDTH = 1.5
+    
+    // Grid dimensions - will be calculated based on actual canvas size
+    let GRID_COLS = 0
+    let GRID_ROWS = 0
+
+    // Color configuration with slightly increased opacity (not white)
+    const colors = {
+      white: { hex: 'rgba(255, 255, 255, 0.25)', percentage: 80, opacity: [0.9, 1.0] },
+      blue: { hex: 'rgba(74, 144, 226, 0.4)', percentage: 8, opacity: [0.7, 0.8] },  // increased from 0.25
+      red: { hex: 'rgba(226, 74, 74, 0.4)', percentage: 7, opacity: [0.6, 0.7] },   // increased from 0.25
+      yellow: { hex: 'rgba(255, 215, 0, 0.4)', percentage: 5, opacity: [0.5, 0.6] } // increased from 0.25
+    }
+
+    // Empty regions (as percentages of canvas size) - INCREASED SIZES
+    const getEmptyRegions = (canvasWidth: number, canvasHeight: number) => [
+      { x: canvasWidth - 200, y: canvasHeight - 150, width: 200, height: 150 }, // bottom-right (larger)
+      { x: canvasWidth - 140, y: 0, width: 140, height: 100 }, // top-right (larger)
+      { x: 0, y: canvasHeight/2 - 80, width: 160, height: 160 }, // left-middle (much larger)
+      // Larger scattered pockets
+      { x: canvasWidth * 0.15, y: canvasHeight * 0.15, width: 80, height: 80 },
+      { x: canvasWidth * 0.45, y: canvasHeight * 0.35, width: 70, height: 70 },
+      { x: canvasWidth * 0.75, y: canvasHeight * 0.12, width: 90, height: 60 },
+      { x: canvasWidth * 0.25, y: canvasHeight * 0.65, width: 60, height: 90 },
+      { x: canvasWidth * 0.65, y: canvasHeight * 0.75, width: 85, height: 70 },
+      // Additional empty regions
+      { x: canvasWidth * 0.85, y: canvasHeight * 0.45, width: 70, height: 100 },
+      { x: canvasWidth * 0.05, y: canvasHeight * 0.85, width: 90, height: 80 },
+      { x: canvasWidth * 0.55, y: canvasHeight * 0.05, width: 80, height: 60 }
+    ]
+
+    interface MazeCell {
+      x: number
+      y: number
+      filled: boolean | 'blocked'
+      color: string
+      opacity: number
+      baseOpacity: number
+      shapeType: 'square' | 'L' | 'T' | 'plus' | 'empty'
+      animationPhase: number
+      animationSpeed: number
+      missingSquares: number[]
+      missingSides: { top: boolean, right: boolean, bottom: boolean, left: boolean }
+      isCompletelyHidden: boolean
+    }
+
+    let maze: MazeCell[][] = []
+    let emptyRegions: { x: number, y: number, width: number, height: number }[] = []
+
+    const initCanvas = () => {
+      // Mobile optimization: reduce canvas size and complexity on smaller screens
+      const isMobile = window.innerWidth < 768
+      const scale = isMobile ? 0.8 : 1
+      
+      // Make canvas fill the entire hero section with mobile scaling
+      canvas.width = window.innerWidth * scale
+      canvas.height = window.innerHeight * scale
+      canvas.style.width = window.innerWidth + 'px'
+      canvas.style.height = window.innerHeight + 'px'
+      
+      // Mobile optimization: larger cell size on mobile for better performance
+      const mobileOptimizedCellSize = isMobile ? CELL_SIZE * 1.5 : CELL_SIZE
+      
+      // Calculate grid dimensions based on actual canvas size
+      GRID_COLS = Math.floor(canvas.width / mobileOptimizedCellSize)
+      GRID_ROWS = Math.floor(canvas.height / mobileOptimizedCellSize)
+      
+      // Generate random emptiness
+      emptyRegions = generateRandomEmptyness(canvas.width, canvas.height)
+      
+      // Enable anti-aliasing with mobile optimization
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = isMobile ? 'low' : 'high'
+      ctx.lineWidth = LINE_WIDTH
+    }
+
+    // Random emptiness with more patterns and concentration around bottom middle
+    const generateRandomEmptyness = (canvasWidth: number, canvasHeight: number) => {
+      const emptyRegions: { x: number, y: number, width: number, height: number }[] = []
+      const bottomMiddleRegion = {
+        x: canvasWidth * 0.3,
+        y: canvasHeight * 0.6,
+        width: canvasWidth * 0.4,
+        height: canvasHeight * 0.3
+      }
+      
+      // Add concentrated emptiness around bottom middle
+      for (let i = 0; i < 25; i++) { // Increased from 15
+        const size = 50 + Math.random() * 120  // Larger empty areas
+        const x = bottomMiddleRegion.x + Math.random() * (bottomMiddleRegion.width - size)
+        const y = bottomMiddleRegion.y + Math.random() * (bottomMiddleRegion.height - size)
+        emptyRegions.push({ x: x, y: y, width: size, height: size })
+      }
+      
+      // Add L-shaped empty areas
+      for (let i = 0; i < 8; i++) {
+        const baseSize = 50
+        const x = Math.random() * (canvasWidth - baseSize * 2)
+        const y = Math.random() * (canvasHeight - baseSize * 2)
+        // L-shaped emptiness (3 squares in L formation)
+        emptyRegions.push({ x: x, y: y, width: baseSize, height: baseSize })
+        emptyRegions.push({ x: x, y: y + baseSize, width: baseSize, height: baseSize })
+        emptyRegions.push({ x: x + baseSize, y: y + baseSize, width: baseSize, height: baseSize })
+      }
+      
+      // Add 8-square block empty areas (2x4 rectangles)
+      for (let i = 0; i < 6; i++) {
+        const squareSize = 50
+        const blockWidth = squareSize * 4
+        const blockHeight = squareSize * 2
+        const x = Math.random() * (canvasWidth - blockWidth)
+        const y = Math.random() * (canvasHeight - blockHeight)
+        emptyRegions.push({ x: x, y: y, width: blockWidth, height: blockHeight })
+      }
+      
+      // Add row empty areas (horizontal lines of squares)
+      for (let i = 0; i < 10; i++) {
+        const squareSize = 50
+        const rowWidth = squareSize * (3 + Math.floor(Math.random() * 5)) // 3-7 squares wide
+        const rowHeight = squareSize
+        const x = Math.random() * (canvasWidth - rowWidth)
+        const y = Math.random() * (canvasHeight - rowHeight)
+        emptyRegions.push({ x: x, y: y, width: rowWidth, height: rowHeight })
+      }
+      
+      // Add more scattered random emptiness across canvas
+      for (let i = 0; i < 40; i++) { // Increased from 25
+        const size = 30 + Math.random() * 80  // Larger range
+        const x = Math.random() * (canvasWidth - size)
+        const y = Math.random() * (canvasHeight - size)
+        emptyRegions.push({ x: x, y: y, width: size, height: size })
+      }
+      
+      return emptyRegions
+    }
+
+    const isInEmptyRegion = (x: number, y: number): boolean => {
+      const pixelX = x * CELL_SIZE
+      const pixelY = y * CELL_SIZE
+      
+      return emptyRegions.some(region => 
+        pixelX >= region.x && pixelX < region.x + region.width &&
+        pixelY >= region.y && pixelY < region.y + region.height
+      )
+    }
+
+    const generateMaze = () => {
+      // Initialize maze grid with squares
+      maze = Array(GRID_ROWS).fill(null).map((_, row) =>
+        Array(GRID_COLS).fill(null).map((_, col) => ({
+          x: col,
+          y: row,
+          filled: false,
+          color: colors.white.hex,
+          opacity: 1.0,
+          baseOpacity: 1.0,
+          shapeType: 'square' as const,
+          animationPhase: Math.random() * Math.PI * 2,
+          animationSpeed: 0.5 + Math.random() * 1.0,
+          missingSquares: [],
+          missingSides: { top: false, right: false, bottom: false, left: false },
+          isCompletelyHidden: false
+        }))
+      )
+
+      // Fill maze with colors based on percentages
+      const totalCells = GRID_ROWS * GRID_COLS
+      const colorDistribution: { color: string, opacity: number }[] = []
+
+      // Build color distribution array
+      Object.entries(colors).forEach(([name, config]) => {
+        const count = Math.floor(totalCells * config.percentage / 100)
+        for (let i = 0; i < count; i++) {
+          const opacity = config.opacity[0] + Math.random() * (config.opacity[1] - config.opacity[0])
+          colorDistribution.push({ color: config.hex, opacity })
+        }
+      })
+
+      // Shuffle distribution
+      for (let i = colorDistribution.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [colorDistribution[i], colorDistribution[j]] = [colorDistribution[j], colorDistribution[i]]
+      }
+
+      // Apply colors and shapes to maze cells, ensuring shapes fit in grid
+      let colorIndex = 0
+      for (let row = 0; row < GRID_ROWS - 2; row += 3) { // Leave space for larger shapes
+        for (let col = 0; col < GRID_COLS - 2; col += 3) {
+          if (!isInEmptyRegion(col, row) && colorIndex < colorDistribution.length) {
+            const cell = maze[row][col]
+            cell.filled = true
+            cell.color = colorDistribution[colorIndex].color
+            cell.opacity = colorDistribution[colorIndex].opacity
+            cell.baseOpacity = colorDistribution[colorIndex].opacity
+            
+            // Assign shape types with different probabilities
+            const rand = Math.random()
+            if (rand < 0.5) {
+              cell.shapeType = 'square'
+            } else if (rand < 0.7) {
+              cell.shapeType = 'L'
+              // Mark occupied cells to prevent overlap
+              if (row + 1 < GRID_ROWS) maze[row + 1][col].filled = 'blocked' as any
+              if (col + 1 < GRID_COLS) maze[row + 1][col + 1].filled = 'blocked' as any
+              
+              // 30% chance to have 1-2 missing squares in L shape
+              if (Math.random() < 0.3) {
+                const numMissing = Math.random() < 0.7 ? 1 : 2
+                const possibleSquares = [0, 1, 2] // L shape has 3 squares
+                const missing: number[] = []
+                for (let i = 0; i < numMissing; i++) {
+                  const availableSquares = possibleSquares.filter(s => !missing.includes(s))
+                  if (availableSquares.length > 0) {
+                    const randomSquare = availableSquares[Math.floor(Math.random() * availableSquares.length)]
+                    missing.push(randomSquare)
+                  }
+                }
+                cell.missingSquares = missing
+              }
+            } else if (rand < 0.85) {
+              cell.shapeType = 'T'
+              // Mark occupied cells
+              if (col + 1 < GRID_COLS) maze[row][col + 1].filled = 'blocked' as any
+              if (col + 2 < GRID_COLS) maze[row][col + 2].filled = 'blocked' as any
+              if (row + 1 < GRID_ROWS) maze[row + 1][col + 1].filled = 'blocked' as any
+              
+              // 25% chance to have 1-2 missing squares in T shape
+              if (Math.random() < 0.25) {
+                const numMissing = Math.random() < 0.8 ? 1 : 2
+                const possibleSquares = [0, 1, 2, 3] // T shape has 4 squares
+                const missing: number[] = []
+                for (let i = 0; i < numMissing; i++) {
+                  const availableSquares = possibleSquares.filter(s => !missing.includes(s))
+                  if (availableSquares.length > 0) {
+                    const randomSquare = availableSquares[Math.floor(Math.random() * availableSquares.length)]
+                    missing.push(randomSquare)
+                  }
+                }
+                cell.missingSquares = missing
+              }
+            } else {
+              cell.shapeType = 'plus'
+              // Mark occupied cells
+              if (row - 1 >= 0) maze[row - 1][col + 1].filled = 'blocked' as any
+              if (col + 1 < GRID_COLS) maze[row][col + 1].filled = 'blocked' as any
+              if (col + 2 < GRID_COLS) maze[row][col + 2].filled = 'blocked' as any
+              if (row + 1 < GRID_ROWS) maze[row + 1][col + 1].filled = 'blocked' as any
+              if (row + 2 < GRID_ROWS) maze[row + 2][col + 1].filled = 'blocked' as any
+              
+              // 20% chance to have 1-3 missing squares in plus shape
+              if (Math.random() < 0.2) {
+                const numMissing = Math.random() < 0.5 ? 1 : (Math.random() < 0.8 ? 2 : 3)
+                const possibleSquares = [0, 1, 2, 3, 4] // Plus shape has 5 squares
+                // Don't remove center square (index 2) as it would disconnect the shape
+                const availableSquares = [0, 1, 3, 4]
+                const missing: number[] = []
+                for (let i = 0; i < numMissing && i < availableSquares.length; i++) {
+                  const remainingSquares = availableSquares.filter(s => !missing.includes(s))
+                  if (remainingSquares.length > 0) {
+                    const randomSquare = remainingSquares[Math.floor(Math.random() * remainingSquares.length)]
+                    missing.push(randomSquare)
+                  }
+                }
+                cell.missingSquares = missing
+              }
+            }
+            
+            colorIndex++
+          }
+        }
+      }
+      
+      // Fill remaining single squares in gaps
+      for (let row = 0; row < GRID_ROWS; row++) {
+        for (let col = 0; col < GRID_COLS; col++) {
+          if (!maze[row][col].filled && !isInEmptyRegion(col, row) && colorIndex < colorDistribution.length) {
+            const cell = maze[row][col]
+            cell.filled = true
+            cell.color = colorDistribution[colorIndex].color
+            cell.opacity = colorDistribution[colorIndex].opacity
+            cell.baseOpacity = colorDistribution[colorIndex].opacity
+            cell.shapeType = 'square'
+            colorIndex++
+          }
+        }
+      }
+      
+      // Apply missing sides and completely hidden squares
+      applyMissingSides()
+    }
+    
+    const applyMissingSides = () => {
+      // First, make 6-10 squares completely invisible by removing all 4 sides
+      const numCompletelyHidden = 6 + Math.floor(Math.random() * 5) // 6-10 squares
+      let hiddenCount = 0
+      
+      while (hiddenCount < numCompletelyHidden) {
+        const row = Math.floor(Math.random() * GRID_ROWS)
+        const col = Math.floor(Math.random() * GRID_COLS)
+        const cell = maze[row][col]
+        
+        if (cell.filled && cell.filled !== 'blocked' && !cell.isCompletelyHidden) {
+          cell.isCompletelyHidden = true
+          cell.missingSides = { top: true, right: true, bottom: true, left: true }
+          hiddenCount++
+        }
+      }
+      
+      // Then randomly remove inner sides of squares in the middle of the grid
+      const midRowStart = Math.floor(GRID_ROWS * 0.2)
+      const midRowEnd = Math.floor(GRID_ROWS * 0.8)
+      const midColStart = Math.floor(GRID_COLS * 0.2)
+      const midColEnd = Math.floor(GRID_COLS * 0.8)
+      
+      for (let row = midRowStart; row < midRowEnd; row++) {
+        for (let col = midColStart; col < midColEnd; col++) {
+          const cell = maze[row][col]
+          if (cell.filled && cell.filled !== 'blocked' && !cell.isCompletelyHidden) {
+            // 15% chance to remove some inner sides
+            if (Math.random() < 0.15) {
+              // Randomly remove 1-3 sides (but not all 4 to avoid duplicating completely hidden squares)
+              const numSidesToRemove = 1 + Math.floor(Math.random() * 3) // 1-3 sides
+              const sides = ['top', 'right', 'bottom', 'left'] as const
+              const sidesToRemove: string[] = []
+              
+              for (let i = 0; i < numSidesToRemove; i++) {
+                const availableSides = sides.filter(s => !sidesToRemove.includes(s))
+                if (availableSides.length > 0) {
+                  const randomSide = availableSides[Math.floor(Math.random() * availableSides.length)]
+                  sidesToRemove.push(randomSide)
+                }
+              }
+              
+              sidesToRemove.forEach(side => {
+                cell.missingSides[side as keyof typeof cell.missingSides] = true
+              })
+            }
+          }
+        }
+      }
+    }
+
+    const drawShape = (x: number, y: number, shapeType: string, color: string, opacity: number, missingSquares: number[] = [], cell?: any) => {
+      ctx.strokeStyle = color
+      ctx.globalAlpha = opacity * 0.5
+      ctx.lineWidth = LINE_WIDTH
+      ctx.shadowBlur = 0
+
+      const drawSquare = (offsetX: number, offsetY: number, squareIndex: number) => {
+        // Skip drawing if this square is marked as missing
+        if (missingSquares.includes(squareIndex)) return
+        
+        const squareX = x + offsetX * CELL_SIZE
+        const squareY = y + offsetY * CELL_SIZE
+        
+        // For single squares (shapeType === 'square'), use cell's missingSides
+        // For multi-square shapes, draw all sides (original behavior)
+        if (shapeType === 'square' && cell && (cell.isCompletelyHidden || cell.missingSides)) {
+          // Skip if completely hidden
+          if (cell.isCompletelyHidden) return
+          
+          // Draw individual sides based on missingSides
+          ctx.beginPath()
+          
+          // Draw top side
+          if (!cell.missingSides.top) {
+            ctx.moveTo(squareX, squareY)
+            ctx.lineTo(squareX + CELL_SIZE, squareY)
+          }
+          
+          // Draw right side
+          if (!cell.missingSides.right) {
+            ctx.moveTo(squareX + CELL_SIZE, squareY)
+            ctx.lineTo(squareX + CELL_SIZE, squareY + CELL_SIZE)
+          }
+          
+          // Draw bottom side
+          if (!cell.missingSides.bottom) {
+            ctx.moveTo(squareX + CELL_SIZE, squareY + CELL_SIZE)
+            ctx.lineTo(squareX, squareY + CELL_SIZE)
+          }
+          
+          // Draw left side
+          if (!cell.missingSides.left) {
+            ctx.moveTo(squareX, squareY + CELL_SIZE)
+            ctx.lineTo(squareX, squareY)
+          }
+          
+          ctx.stroke()
+        } else {
+          // Original drawing for multi-square shapes
+          ctx.strokeRect(squareX, squareY, CELL_SIZE, CELL_SIZE)
+        }
+      }
+
+      switch (shapeType) {
+        case 'square':
+          // Single cube
+          drawSquare(0, 0, 0)
+          break
+
+        case 'L':
+          // L shape: 3 cubes in L formation
+          drawSquare(0, 0, 0)     // top-left
+          drawSquare(0, 1, 1)     // bottom-left
+          drawSquare(1, 1, 2)     // bottom-right
+          break
+
+        case 'T':
+          // T shape: 4 cubes in T formation
+          drawSquare(0, 0, 0)     // left
+          drawSquare(1, 0, 1)     // center
+          drawSquare(2, 0, 2)     // right
+          drawSquare(1, 1, 3)     // bottom center
+          break
+
+        case 'plus':
+          // Plus shape: 5 cubes in + formation
+          drawSquare(1, 0, 0)     // top
+          drawSquare(0, 1, 1)     // left
+          drawSquare(1, 1, 2)     // center
+          drawSquare(2, 1, 3)     // right
+          drawSquare(1, 2, 4)     // bottom
+          break
+
+        default:
+          drawSquare(0, 0, 0)
+          break
+      }
+    }
+
+    const drawMaze = (currentTime: number) => {
+      // Don't clear with black background - keep it transparent
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      const elapsedTime = currentTime - (window as any).mazeStartTime || 0
+
+      for (let row = 0; row < GRID_ROWS; row++) {
+        for (let col = 0; col < GRID_COLS; col++) {
+          const cell = maze[row][col]
+          if (!cell.filled || cell.filled === 'blocked') continue
+
+          const x = cell.x * CELL_SIZE
+          const y = cell.y * CELL_SIZE
+
+          let currentOpacity = cell.baseOpacity
+
+          // Only animate L, T, and plus shapes - not squares
+          // Slower animation speed for better mobile performance
+          if (cell.shapeType !== 'square') {
+            const animationIntensity = 0.15 // Reduced intensity
+            const slowAnimationSpeed = 0.0008 // Much slower animation
+            const animation = Math.sin(currentTime * slowAnimationSpeed * cell.animationSpeed + cell.animationPhase) * animationIntensity
+            currentOpacity = Math.max(0.1, cell.baseOpacity + animation)
+          }
+
+          // Progressive appearance with slower fade-in for better mobile performance
+          const cellDelay = (row * GRID_COLS + col) * 20 // Slower delay
+          if (elapsedTime > cellDelay) {
+            const fadeProgress = Math.min(1, (elapsedTime - cellDelay) / 800) // Slower fade
+            currentOpacity *= fadeProgress
+
+            drawShape(x, y, cell.shapeType, cell.color, currentOpacity, cell.missingSquares, cell)
+          }
+        }
+      }
+
+      ctx.shadowBlur = 0
+      ctx.globalAlpha = 1
+    }
+
+    const animate = (currentTime: number) => {
+      if (!mazeGenerated) {
+        generateMaze()
+        mazeGenerated = true
+        ;(window as any).mazeStartTime = currentTime
+      }
+
+      drawMaze(currentTime)
+      animationId = requestAnimationFrame(animate)
+    }
+
+    // Initialize
+    initCanvas()
+    
+    const startAnimation = () => {
+      animationId = requestAnimationFrame(animate)
+    }
+    
+    startAnimation()
+
+    // Handle resize
+    const handleResize = () => {
+      initCanvas()
+    }
+
+    // Handle visibility change for performance
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animationId)
+      } else {
+        startAnimation()
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      cancelAnimationFrame(animationId)
+      window.removeEventListener('resize', handleResize)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      {/* Navigation */}
+      <SharedNavigation />
+
+      {/* Hero Section */}
+      <section className="min-h-screen flex items-center justify-center bg-gradient-to-b from-black via-gray-900 to-black relative pt-16 overflow-hidden">
+        {/* Procedural Maze Background with Mobile Optimization */}
+        <canvas
+          id="mazeCanvas"
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-80 md:opacity-100"
+          style={{ zIndex: 1 }}
+        />
+        
+        {/* POWERED BY IPNOTEC Link */}
+        <div className="absolute bottom-4 right-4 z-20 hidden sm:block">
+          <a
+            href="https://ipnotec.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-gray-800/80 border border-gray-600 px-2 py-1 text-xs text-white hover:text-white hover:border-gray-400 transition-colors duration-200 backdrop-blur-sm"
+          >
+            POWERED BY{" "}
+            <span className="text-orange-300">
+              IPNOTEC
+            </span>
+          </a>
+        </div>
+        
+        <div className="text-center max-w-6xl mx-auto px-4 hero-content">
+          <motion.div 
+            className="mb-12"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="relative inline-block mb-6">
+              <motion.div 
+                className="hero-glass-backplate font-doto px-8 py-4 rounded-2xl font-bold text-5xl md:text-7xl mb-4 inline-block text-white tracking-wider shadow-2xl"
+                whileHover={{ 
+                  scale: 1.02,
+                  y: -2
+                }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                CLUBICLES
+              </motion.div>
+              <motion.div 
+                className="absolute -bottom-2 left-0 right-0 flex justify-center glass-strong text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-lg font-doto"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                CONNECT - COLLABORATE - CREATE
+              </motion.div>
+            </div>
+            {/* <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+              Find Your Perfect
+              <span className="block">Workspace</span>
+            </h1> */}
+            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Book premium co-working spaces across India. Work anywhere, anytime with professional amenities.
+            </p>
+          </motion.div>
+          
+          {/* Enhanced Search Bar with Fade Up Animation */}
+          <motion.div 
+            className="bg-white/10 backdrop-blur-md rounded-3xl p-8 max-w-5xl mx-auto mb-12 border border-white/20 shadow-2xl relative z-[99999]"
+            style={{ zIndex: 99999 }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              {/* City Selection */}
+              <div className="lg:col-span-1">
+                <label className="block text-sm font-semibold text-white mb-3 text-left">
+                  📍 Select City
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-4 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-200"
+                  >
+                    <option value="" className="bg-gray-900 text-white">Locate A Space Near Me</option>
+                    {POPULAR_CITIES.map((city) => (
+                      <option key={city} value={city} className="bg-gray-900 text-white">{city}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Search Input */}
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-semibold text-white mb-3 text-center">
+                  🔍 Search Spaces
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70 z-10" />
+                  <Input
+                    placeholder="Space name, area, or pincode..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => searchQuery.length > 0 && setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    className="pl-12 pr-4 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white !placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-200 h-14"
+                  />
+                  
+                  {/* Autocomplete Dropdown */}
+                  {(showSuggestions || isLoadingSuggestions) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-black/80 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-[99999] overflow-hidden"
+                      style={{ zIndex: 99999 }}
+                    >
+                      {isLoadingSuggestions && (
+                        <div className="px-4 py-3 text-white/60 text-center">
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin"></div>
+                            <span>Searching...</span>
+                          </div>
+                        </div>
+                      )}
+                      {!isLoadingSuggestions && filteredSuggestions.length > 0 && filteredSuggestions.map((suggestion, index) => (
+                        <div
+                          key={`${suggestion.type}-${suggestion.value}`}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className={`px-4 py-3 cursor-pointer transition-all duration-200 border-b border-white/10 last:border-b-0 ${
+                            index === selectedSuggestionIndex
+                              ? 'bg-white/20 border-l-4 border-l-white/60'
+                              : 'hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex-shrink-0">
+                                {suggestion.type === 'space' && (
+                                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                )}
+                                {suggestion.type === 'area' && (
+                                  <MapPin className="w-4 h-4 text-green-400" />
+                                )}
+                                {suggestion.type === 'city' && (
+                                  <Globe className="w-4 h-4 text-purple-400" />
+                                )}
+                                {suggestion.type === 'keyword' && (
+                                  <Search className="w-4 h-4 text-orange-400" />
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-white font-medium">{suggestion.value}</div>
+                                {suggestion.location && (
+                                  <div className="text-xs text-white/60">{suggestion.location}</div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex-shrink-0">
+                              <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                                suggestion.type === 'space' ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' :
+                                suggestion.type === 'area' ? 'bg-green-500/20 text-green-300 border border-green-400/30' :
+                                suggestion.type === 'city' ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' :
+                                'bg-orange-500/20 text-orange-300 border border-orange-400/30'
+                              }`}>
+                                {suggestion.category}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {!isLoadingSuggestions && filteredSuggestions.length === 0 && searchQuery.length > 1 && (
+                        <div className="px-4 py-3 text-white/60 text-center">
+                          No suggestions found
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              {/* Search Button */}
+              <div className="lg:col-span-1 flex items-end">
+                <Button 
+                  onClick={handleSearch}
+                  className="w-full !bg-white !text-black font-semibold hover:bg-gray-100 hover:!text-white  hover:scale-105 h-14 rounded-xl transition-all duration-200 shadow-lg"
+                >
+                  <Search className="mr-2 h-5 w-5 !text-white hover:!text-white" />
+                  Book Your Space
+                </Button>
+              </div>
+            </div>
+
+            {/* Popular Cities */}
+            <div className="mt-4">
+              <p className="text-sm font-semibold text-white mb-4">🔥 Popular Cities:</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                {POPULAR_CITIES.slice(0, 8).map((city) => (
+                  <button
+                    key={city}
+                    onClick={() => setSelectedCity(city)}
+                    className="px-6 py-2.5 text-sm font-medium bg-white/20 backdrop-blur-sm border border-white/30 rounded-full hover:bg-white/30 hover:scale-105 transition-all duration-200 text-white"
+                  >
+                    {city}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Enhanced Stats with Animation */}
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">500+</div>
+              <div className="text-sm text-gray-300 font-medium">Premium Spaces <span className='block text-xs text-gray-400'>(Aim to be)</span></div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">10K+</div>
+              <div className="text-sm text-gray-300 font-medium">Happy Members <span className='block text-xs text-gray-400'>(Aim to be)</span></div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">50+</div>
+              <div className="text-sm text-gray-300 font-medium">Cities Covered <span className='block text-xs text-gray-400'>(Aim to be)</span></div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">4.9★</div>
+              <div className="text-sm text-gray-300 font-medium">User Rating <span className='block text-xs text-gray-400'>(Aim to be)</span></div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Enhanced Features Section with Animations */}
+      <section id="features" className="py-24 px-4 bg-gradient-to-b from-black to-gray-900 relative overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          <motion.div
+            className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl"
+            animate={{
+              x: [0, 100, 0],
+              y: [0, -50, 0],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+          <motion.div
+            className="absolute bottom-20 right-10 w-96 h-96 bg-white/3 rounded-full blur-3xl"
+            animate={{
+              x: [0, -120, 0],
+              y: [0, 80, 0],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+        </div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <motion.div 
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+              Why Choose Clubicles
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Everything you need to work productively in a modern environment
+            </p>
+          </motion.div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: CheckCircle,
+                title: "Hygiene Factor",
+                description: "Revolutionary cleanliness rating system ensuring the highest hygiene standards at every workspace",
+                delay: 0.05
+              },
+              {
+                icon: MapPin,
+                title: "Prime Locations",
+                description: "Work from the best locations in major cities with easy accessibility and modern infrastructure",
+                delay: 0.1
+              },
+              {
+                icon: Wifi,
+                title: "High-Speed WiFi",
+                description: "Lightning-fast internet connectivity for seamless video calls and file transfers",
+                delay: 0.15
+              },
+              
+              {
+                icon: Shield,
+                title: "Secure Access",
+                description: "24/7 security and controlled access for peace of mind while you work",
+                delay: 0.25
+              },
+              {
+                icon: Car,
+                title: "Free Parking",
+                description: "Complimentary parking spaces available at most locations",
+                delay: 0.3
+              },
+              {
+                icon: Clock,
+                title: "24/7 Access",
+                description: "Work on your schedule with round-the-clock access to spaces",
+                delay: 0.35
+              }
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: feature.delay }}
+                viewport={{ once: true }}
+                whileHover={{ 
+                  scale: 1.05,
+                  transition: { duration: 0.2 }
+                }}
+              >
+                <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all duration-300 rounded-2xl h-full group">
+                  <CardHeader className="p-8">
+                    <motion.div 
+                      className="w-16 h-16 bg-gradient-to-br from-white to-gray-300 rounded-2xl flex items-center justify-center mb-6"
+                      whileHover={{ 
+                        rotate: 360,
+                        transition: { duration: 0.6 }
+                      }}
+                    >
+                      <feature.icon className="w-8 h-8 text-black" />
+                    </motion.div>
+                    <CardTitle className="text-white text-xl mb-3 group-hover:text-gray-100 transition-colors">
+                      {feature.title}
+                    </CardTitle>
+                    <CardDescription className="text-gray-300 text-base leading-relaxed group-hover:text-gray-200 transition-colors">
+                      {feature.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* New Animated Statistics Section */}
+          <motion.div 
+            className="mt-20"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <div className="text-center mb-12">
+              <h3 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                Aim for the Next 5 Years
+                </h3>
+                <p className="text-lg text-gray-300">
+                  These are our goals for quality and commitment by 2030
+                </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { number: "500+", label: "Premium Spaces", icon: MapPin },
+                { number: "10K+", label: "Happy Members", icon: Users },
+                { number: "50+", label: "Cities Covered", icon: Globe },
+                { number: "4.9★", label: "User Rating", icon: Star }
+              ].map((stat, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center group hover:bg-white/15 transition-all duration-300"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, delay: 0.9 + index * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ 
+                    scale: 1.05,
+                    transition: { duration: 0.2 }
+                  }}
+                >
+                  <motion.div
+                    className="flex justify-center mb-3"
+                    whileHover={{ 
+                      rotate: 15,
+                      transition: { duration: 0.2 }
+                    }}
+                  >
+                    <stat.icon className="w-8 h-8 text-white/70 group-hover:text-white transition-colors" />
+                  </motion.div>
+                  <div className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    {stat.number}
+                  </div>
+                  <div className="text-sm text-gray-300 font-medium group-hover:text-gray-200 transition-colors">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Redesigned Premium Features Showcase with Grid Animation */}
+          <motion.div 
+            className="mt-16 relative"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+            viewport={{ once: true }}
+          >
+            {/* Animated Grid Background */}
+            <div className="absolute inset-0 overflow-hidden">
+              <motion.div
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '40px 40px'
+                }}
+                animate={{
+                  backgroundPosition: ['0px 0px', '40px 40px', '0px 0px'],
+                }}
+                transition={{
+                  duration: 10,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              />
+            </div>
+
+            <div className="text-center mb-8 relative z-10">
+              <h3 className="text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                Premium Amenities
+              </h3>
+              <p className="text-base text-gray-300">
+                Experience the finest workspace facilities
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+              {[
+                {
+                  icon: Zap,
+                  title: "Power Backup",
+                  description: "Uninterrupted power supply with 100% backup"
+                },
+                {
+                  icon: Headphones,
+                  title: "Sound Proof Pods",
+                  description: "Private pods for focused work and calls"
+                },
+                {
+                  icon: Users,
+                  title: "Community Events",
+                  description: "Regular networking and skill-building events"
+                }
+              ].map((feature, index) => (
+                <motion.div
+                  key={index}
+                  className="group"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 1.4 + index * 0.2 }}
+                  viewport={{ once: true }}
+                  whileHover={{ 
+                    scale: 1.02,
+                    transition: { duration: 0.2 }
+                  }}
+                >
+                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 h-full">
+                    <motion.div 
+                      className="w-12 h-12 bg-gradient-to-br from-white to-gray-300 rounded-xl flex items-center justify-center mb-4"
+                      whileHover={{ 
+                        rotate: [0, 10, -10, 0],
+                        transition: { duration: 0.5 }
+                      }}
+                    >
+                      <feature.icon className="w-6 h-6 text-black" />
+                    </motion.div>
+                    <h4 className="text-white text-lg font-semibold mb-2 group-hover:text-gray-100 transition-colors">
+                      {feature.title}
+                    </h4>
+                    <p className="text-gray-300 text-sm leading-relaxed group-hover:text-gray-200 transition-colors">
+                      {feature.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Enhanced CTA Section */}
+      <section className="py-20 px-4 bg-gray-900 relative overflow-hidden">
+        {/* Animated Background */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-white/5"
+          animate={{
+            x: [-100, 100, -100],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+        
+        <motion.div 
+          className="text-center relative z-10"
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          <Card className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md border-white/20 shadow-2xl rounded-2xl overflow-hidden">
+            <CardContent className="p-12 relative">
+              {/* Floating particles */}
+              <div className="absolute inset-0">
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-2 h-2 bg-white/20 rounded-full"
+                    style={{
+                      left: `${20 + i * 15}%`,
+                      top: `${30 + (i % 2) * 40}%`,
+                    }}
+                    animate={{
+                      y: [0, -20, 0],
+                      opacity: [0.3, 0.8, 0.3],
+                    }}
+                    transition={{
+                      duration: 3 + i * 0.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                ))}
+              </div>
+              
+              <motion.div 
+                className="mb-8 relative z-10"
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
+                <h2 className="text-3xl md:text-4xl pt-8 font-bold mb-4 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                  Ready to Get Started?
+                </h2>
+                <p className="text-xl text-gray-300 leading-relaxed">
+                  Join thousands of professionals who trust Clubicles for their workspace needs.
+                </p>
+              </motion.div>
+              
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4 justify-center relative z-10"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                viewport={{ once: true }}
+              >
+                <Link href="/signup">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button size="lg" className="bg-white !text-black hover:bg-gray-100 hover:!text-white hover:scale-105 transition-all duration-200 shadow-lg px-8 py-4 text-lg rounded-xl">
+                      Start Your Journey
+                    </Button>
+                  </motion.div>
+                </Link>
+                <Link href="/spaces">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button variant="outline" size="lg" className="border-white/30 text-black hover:bg-white/20 hover:border-white/50 backdrop-blur-md transition-all duration-300 hover:scale-105 px-8 py-4 text-lg rounded-xl">
+                      Explore Spaces
+                    </Button>
+                  </motion.div>
+                </Link>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </section>
+
+      {/* Footer with Enhanced Shadow Down Effect */}
+      <footer className="border-t border-gray-800 py-12 relative overflow-hidden">
+        {/* Shadow Down Effect with Animation */}
+        <motion.div 
+          className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-transparent via-black/20 to-black/40 pointer-events-none"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          viewport={{ once: true }}
+        ></motion.div>
+        
+        <motion.div 
+          className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-black/60 pointer-events-none transform translate-y-full"
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.2 }}
+          viewport={{ once: true }}
+        ></motion.div>
+        
+        {/* Additional shadow layers for depth with subtle pulse */}
+        <motion.div 
+          className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-b from-transparent to-black/80 pointer-events-none transform translate-y-full blur-sm"
+          animate={{ 
+            opacity: [0.6, 0.8, 0.6],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        ></motion.div>
+        
+        <motion.div 
+          className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-b from-transparent to-black pointer-events-none transform translate-y-full blur-md"
+          animate={{ 
+            opacity: [0.8, 1, 0.8],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        ></motion.div>
+        
+        <motion.div 
+          className="max-w-7xl mx-auto px-4 text-center relative z-10"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          viewport={{ once: true }}
+        >
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <div className="w-16 h-16 flex items-center justify-center">
+              <img src="/logo.svg" alt="Clubicles Logo"  />
+            </div>
+            <span className="font-orbitron text-4xl md:text-4xl font-black tracking-wider text-white">CLUBICLES</span>
+          </div>
+          <p className="text-gray-400 mb-6">
+            Your premium co-working space platform
+          </p>
+          <div className="flex justify-center space-x-8 text-sm text-gray-400">
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="/refund-policy" className="hover:text-white transition-colors">Refund Policy</Link>
+            <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
+          </div>
+          <div className="mt-8 pt-8 border-t border-gray-800">
+            <p className="text-gray-500 text-sm">
+              © 2025 Clubicles. All rights reserved.
+            </p>
+          </div>
+        </motion.div>
+      </footer>
+    </div>
+  )
+}
