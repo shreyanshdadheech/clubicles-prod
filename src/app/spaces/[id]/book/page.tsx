@@ -24,6 +24,15 @@ function formatLocalDate(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
+// Helper function to safely get number from seats (string or number)
+function getSeatsNumber(seats: number | string): number {
+  if (typeof seats === 'string') {
+    const num = parseInt(seats)
+    return isNaN(num) ? 0 : num
+  }
+  return seats
+}
+
 // Mock space data
 const mockSpaces: Space[] = [
   {
@@ -99,7 +108,7 @@ function BookSpaceContent() {
     date: Date
     startTime: string
     endTime: string
-    seats: number
+    seats: number | string // Allow string during typing
     bookingType: "hourly" | "daily"
     professionalRole: string
   }>>([])
@@ -363,7 +372,7 @@ function BookSpaceContent() {
       const end = new Date(`2024-01-01 ${booking.endTime}`)
       const hours = isHourly ? Math.max(1, (end.getTime() - start.getTime()) / (1000 * 60 * 60)) : 1
       const rate = isHourly ? space.price_per_hour : space.price_per_day
-      return total + (rate * booking.seats * hours)
+      return total + (rate * getSeatsNumber(booking.seats) * hours)
     }, 0)
   }
 
@@ -522,7 +531,7 @@ function BookSpaceContent() {
                     date: formatLocalDate(booking.date),
                     start_time: booking.startTime,
                     end_time: booking.endTime,
-                    seats: booking.seats,
+                    seats: typeof booking.seats === 'number' ? booking.seats : parseInt(booking.seats) || 1,
                     booking_type: booking.bookingType,
                     professional_role: booking.professionalRole
                   })) : selectedDates.map(d => ({
@@ -535,7 +544,7 @@ function BookSpaceContent() {
                   })),
                   start_time: dateBookings[0]?.startTime || (bookingType === "hourly" ? startTime : "09:00"),
                   end_time: dateBookings[0]?.endTime || (bookingType === "hourly" ? endTime : "18:00"),
-                  seats: dateBookings.length > 0 ? dateBookings.reduce((total, booking) => total + booking.seats, 0) : seatsRequired,
+                  seats: dateBookings.length > 0 ? dateBookings.reduce((total, booking) => total + getSeatsNumber(booking.seats), 0) : seatsRequired,
                   booking_type: dateBookings[0]?.bookingType || bookingType,
                   total_amount: calculateTotal(),
                   space_name: space.name,
@@ -565,7 +574,7 @@ function BookSpaceContent() {
               spaceAddress: space.address,
               dates: dateBookings.length > 0 ? dateBookings.map(b => formatLocalDate(b.date)).join(',') : selectedDates.map(d => formatLocalDate(d)).join(','),
               bookingType: dateBookings[0]?.bookingType || bookingType,
-              seats: dateBookings.length > 0 ? dateBookings.reduce((total, b) => total + b.seats, 0).toString() : seatsRequired.toString(),
+              seats: dateBookings.length > 0 ? dateBookings.reduce((total, b) => total + getSeatsNumber(b.seats), 0).toString() : seatsRequired.toString(),
               startTime: dateBookings[0]?.startTime || (bookingType === "hourly" ? startTime : ""),
               endTime: dateBookings[0]?.endTime || (bookingType === "hourly" ? endTime : ""),
               subtotal: calculateSubtotal().toString(),
@@ -1061,7 +1070,7 @@ function BookSpaceContent() {
                         )}
                       </div>
                       <div className="text-right">
-                              <p className="text-white font-medium">{booking.seats} seat{booking.seats > 1 ? 's' : ''}</p>
+                              <p className="text-white font-medium">{getSeatsNumber(booking.seats)} seat{getSeatsNumber(booking.seats) > 1 ? 's' : ''}</p>
                               <p className="text-sm text-gray-300">
                                 {booking.bookingType === "hourly" ? "Hourly" : "Full Day"}
                               </p>
@@ -1080,7 +1089,7 @@ function BookSpaceContent() {
                   <div className="flex justify-between items-center py-2">
                     <span className="text-gray-300 font-medium">Total Seats</span>
                     <span className="text-white font-semibold">
-                      {dateBookings.reduce((total, booking) => total + booking.seats, 0)} seat{dateBookings.reduce((total, booking) => total + booking.seats, 0) !== 1 ? 's' : ''}
+                      {dateBookings.reduce((total, booking) => total + getSeatsNumber(booking.seats), 0)} seat{dateBookings.reduce((total, booking) => total + getSeatsNumber(booking.seats), 0) !== 1 ? 's' : ''}
                     </span>
                   </div>
 
@@ -1095,7 +1104,7 @@ function BookSpaceContent() {
                           const end = new Date(`2024-01-01 ${booking.endTime}`)
                           const hours = isHourly ? Math.max(1, (end.getTime() - start.getTime()) / (1000 * 60 * 60)) : 1
                           const rate = isHourly ? space.price_per_hour : space.price_per_day
-                          const totalForThisBooking = rate * booking.seats * hours
+                          const totalForThisBooking = rate * getSeatsNumber(booking.seats) * hours
                           
                           return (
                             <div key={index} className="border-b border-white/10 pb-2 last:border-b-0">
@@ -1104,7 +1113,7 @@ function BookSpaceContent() {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-400">
-                                  {isHourly ? 'Hourly' : 'Daily'} × {booking.seats} seat{booking.seats !== 1 ? 's' : ''}
+                                  {isHourly ? 'Hourly' : 'Daily'} × {getSeatsNumber(booking.seats)} seat{getSeatsNumber(booking.seats) !== 1 ? 's' : ''}
                                   {isHourly && ` × ${hours} hour${hours !== 1 ? 's' : ''}`}
                                 </span>
                                 <span className="text-gray-300">{formatCurrency(totalForThisBooking)}</span>
