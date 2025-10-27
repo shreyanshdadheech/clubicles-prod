@@ -101,6 +101,31 @@ export default function HomePage() {
     window.location.href = `/spaces?${query.toString()}`
   }
 
+  const handleLocateNearMe = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords
+          // Redirect to spaces page with location query
+          window.location.href = `/spaces?sort=distance&lat=${latitude}&lng=${longitude}`
+        },
+        (error) => {
+          console.error('Error getting location:', error)
+          // Fallback: just go to spaces page without location
+          window.location.href = '/spaces?sort=distance'
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      )
+    } else {
+      // Geolocation not supported, just go to spaces page
+      window.location.href = '/spaces?sort=distance'
+    }
+  }
+
   // Procedural Maze Background
   useEffect(() => {
     const canvas = document.getElementById('mazeCanvas') as HTMLCanvasElement
@@ -712,10 +737,19 @@ export default function HomePage() {
                 <div className="relative">
                   <select
                     value={selectedCity}
-                    onChange={(e) => setSelectedCity(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setSelectedCity(value)
+                      
+                      // If "Locate A Space Near Me" is selected, trigger geolocation search
+                      if (value === 'near-me') {
+                        handleLocateNearMe()
+                      }
+                    }}
                     className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-4 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 transition-all duration-200"
                   >
-                    <option value="" className="bg-gray-900 text-white">Locate A Space Near Me</option>
+                    <option value="" className="bg-gray-900 text-white">Select City</option>
+                    <option value="near-me" className="bg-gray-900 text-white">📍 Locate A Space Near Me</option>
                     {POPULAR_CITIES.map((city) => (
                       <option key={city} value={city} className="bg-gray-900 text-white">{city}</option>
                     ))}
