@@ -588,15 +588,7 @@ function DashboardContent() {
                   ))
                 )}
               </div>
-              {!isLoadingReviews && reviews.length > 0 && (
-                <div className="mt-6 text-center">
-                  <Link href="/profile">
-                    <Button variant="outline" className="border-white/30 text-black hover:text-white hover:bg-white/10 rounded-xl">
-                      View All Reviews
-                    </Button>
-                  </Link>
-                </div>
-              )}
+              {!isLoadingReviews && reviews.length > 0 }
             </CardContent>
           </Card>
         </div>
