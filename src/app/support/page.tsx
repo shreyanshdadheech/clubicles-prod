@@ -322,8 +322,7 @@ export default function SupportPage() {
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-white to-gray-300 rounded-full"></div>
-                <span className="text-xl font-semibold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">Clubicles</span>
+            <span className="font-doto text-4xl md:text-4xl font-black tracking-wider text-white">CLUBICLES</span>
               </Link>
             </div>
           </div>
