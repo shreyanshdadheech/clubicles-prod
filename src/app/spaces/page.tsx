@@ -1072,7 +1072,13 @@ function SpacesPageContent() {
                   <label className="text-xs uppercase tracking-wide font-medium text-white/80">City</label>
                   <select
                     value={selectedCity}
-                    onChange={(e) => setSelectedCity(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedCity(e.target.value)
+                      // Update search query when city is selected
+                      if (e.target.value) {
+                        setSearchQuery(e.target.value)
+                      }
+                    }}
                     className="w-full rounded-xl bg-white/10 border border-white/20 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30"
                   >
                     <option value="" className="bg-gray-800 text-white">All Cities</option>

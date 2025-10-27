@@ -49,7 +49,17 @@ export function SharedNavigation() {
         <div className="flex items-center h-16">
           {/* Left Section - Logo */}
           <div className="flex items-center space-x-2 flex-1">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link 
+              href="/" 
+              className="flex items-center space-x-2"
+              onClick={(e) => {
+                // If already on home page, force reload
+                if (window.location.pathname === '/') {
+                  e.preventDefault()
+                  window.location.reload()
+                }
+              }}
+            >
               <img src="/logo.svg" alt="Clubicles Logo" className="w-14 h-14" />
             </Link>
           </div>

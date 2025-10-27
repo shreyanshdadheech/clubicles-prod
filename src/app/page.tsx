@@ -22,14 +22,25 @@ type SearchSuggestion = {
 const POPULAR_CITIES = DataService.getPopularCities()
 
 export default function HomePage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const [selectedCity, setSelectedCity] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [filteredSuggestions, setFilteredSuggestions] = useState<SearchSuggestion[]>([])
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [hasReloaded, setHasReloaded] = useState(false)
 
+  // Reload page after login for fresh state
+  useEffect(() => {
+    if (!loading && user && !hasReloaded) {
+      setHasReloaded(true)
+      // Small delay to ensure auth state is fully set
+      setTimeout(() => {
+        window.location.reload()
+      }, 500)
+    }
+  }, [user, loading, hasReloaded])
 
   // Fetch suggestions from API based on search query
   useEffect(() => {
@@ -96,7 +107,14 @@ export default function HomePage() {
   const handleSearch = () => {
     const query = new URLSearchParams()
     if (selectedCity) query.set('city', selectedCity)
-    if (searchQuery) query.set('search', searchQuery)
+    
+    // Priority: manual search query > selected city
+    if (searchQuery) {
+      query.set('search', searchQuery)
+    } else if (selectedCity && selectedCity !== 'near-me') {
+      // If no manual search, use selected city as search query
+      query.set('search', selectedCity)
+    }
     
     window.location.href = `/spaces?${query.toString()}`
   }
