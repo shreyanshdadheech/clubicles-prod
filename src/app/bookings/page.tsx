@@ -1112,16 +1112,11 @@ function BookingsContent() {
                           Cancel Booking
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        className="w-full border-gray-600/50 text-gray-400 hover:bg-gray-800/50 hover:border-gray-500 transition-all duration-200"
-                      >
-                        View Details
-                      </Button>
+                    
                       <div className="flex-1 flex items-end">
                         <div className="w-full text-center py-2">
                           <p className="text-xs text-gray-500">
-                            Booked {new Date(booking.created_at).toLocaleDateString()}
+                          
                           </p>
                         </div>
                       </div>
