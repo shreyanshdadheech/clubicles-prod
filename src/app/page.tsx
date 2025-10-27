@@ -872,9 +872,9 @@ export default function HomePage() {
               <div className="lg:col-span-1 flex items-end">
                 <Button 
                   onClick={handleSearch}
-                  className="w-full !bg-white !text-black font-semibold hover:bg-gray-100 hover:!text-white  hover:scale-105 h-14 rounded-xl transition-all duration-200 shadow-lg"
+                  className="w-full !bg-white !text-black hero-glass-backplate font-doto rounded-2xl font-bold text-4xl md:text-2xl  inline-block text-white tracking-wider shadow-2xl font-semibold hover:bg-gray-100 hover:!text-white  hover:scale-105 rounded-xl transition-all duration-200 shadow-lg"
                 >
-                  <Search className="mr-2 h-5 w-5 !text-white hover:!text-white" />
+                  <Search className="mr-2 h-5 w-5  !text-white hover:!text-white" />
                   Search
                 </Button>
               </div>
