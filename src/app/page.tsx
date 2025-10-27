@@ -875,7 +875,7 @@ export default function HomePage() {
                   className="w-full !bg-white !text-black font-semibold hover:bg-gray-100 hover:!text-white  hover:scale-105 h-14 rounded-xl transition-all duration-200 shadow-lg"
                 >
                   <Search className="mr-2 h-5 w-5 !text-white hover:!text-white" />
-                  Book Your Space
+                  Search
                 </Button>
               </div>
             </div>
