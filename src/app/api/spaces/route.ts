@@ -17,10 +17,7 @@ export async function GET(request: NextRequest) {
     const where: any = {}
     
     if (city) {
-      where.city = {
-        contains: city,
-        mode: 'insensitive'
-      }
+      where.city = city
     }
     
     if (minPrice) {
@@ -38,11 +35,12 @@ export async function GET(request: NextRequest) {
     // Don't filter in Prisma when search exists - we'll filter client-side to include amenities
     // This is because Prisma can't search within JSON arrays efficiently
     
-    if (amenities.length > 0) {
-      where.amenities = {
-        hasSome: amenities
-      }
-    }
+    // Note: MySQL JSON array operations are complex, so amenities filtering is done client-side
+    // if (amenities.length > 0) {
+    //   where.amenities = {
+    //     hasSome: amenities  // Not supported in MySQL Prisma
+    //   }
+    // }
 
     // Get spaces with business info and reviews
     let spaces = await prisma.space.findMany({
@@ -65,7 +63,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Apply search filter for ALL fields including amenities
+    // Apply search filter for ALL fields including amenities and city matching
     if (search) {
       const searchLower = search.toLowerCase()
       spaces = spaces.filter(space => {
@@ -86,6 +84,14 @@ export async function GET(request: NextRequest) {
         
         return matchesDatabaseFields || matchesAmenities
       })
+    }
+    
+    // Also filter by city if provided (client-side for better matching)
+    if (city) {
+      const cityLower = city.toLowerCase()
+      spaces = spaces.filter(space => 
+        space.city.toLowerCase().includes(cityLower)
+      )
     }
 
     // Transform spaces data for frontend

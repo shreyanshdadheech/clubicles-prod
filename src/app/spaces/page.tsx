@@ -831,12 +831,31 @@ function SpacesPageContent() {
   useEffect(() => {
     const cityParam = searchParams.get('city')
     const searchParam = searchParams.get('search')
+    const sortParam = searchParams.get('sort')
+    const lat = searchParams.get('lat')
+    const lng = searchParams.get('lng')
     
     if (cityParam) {
       setSelectedCity(cityParam)
     }
     if (searchParam) {
       setSearchQuery(searchParam)
+    }
+    
+    // Handle distance/location parameters
+    if (sortParam === 'distance') {
+      setSortBy('distance')
+      if (lat && lng) {
+        setUserLocation({ latitude: parseFloat(lat), longitude: parseFloat(lng) })
+        // Get city from coordinates (simplified - you might want to reverse geocode)
+        getCurrentLocation().then(location => {
+          const nearestCity = getNearestCity(location)
+          setUserCurrentCity(nearestCity)
+          setLocationError(null)
+        }).catch(() => {
+          // Use provided coordinates as fallback
+        })
+      }
     }
   }, [searchParams])
 
@@ -1073,10 +1092,11 @@ function SpacesPageContent() {
                   <select
                     value={selectedCity}
                     onChange={(e) => {
-                      setSelectedCity(e.target.value)
-                      // Update search query when city is selected
-                      if (e.target.value) {
-                        setSearchQuery(e.target.value)
+                      const newCity = e.target.value
+                      setSelectedCity(newCity)
+                      // Clear search query when city changes to avoid conflicts
+                      if (newCity) {
+                        setSearchQuery('')
                       }
                     }}
                     className="w-full rounded-xl bg-white/10 border border-white/20 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30"

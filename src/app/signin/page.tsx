@@ -357,11 +357,9 @@ function SignInContent() {
       // Clear loading state before redirect
       setLoading(false)
       
-      // Set flag for homepage reload if redirecting to homepage
-      if (redirectUrl === '/' || redirectUrl.includes('home') || redirectUrl === '/dashboard') {
-        sessionStorage.setItem('shouldReloadAfterLogin', 'true')
-      }
-
+      // Force refresh of auth state across the app by dispatching custom event
+      window.dispatchEvent(new CustomEvent('authStateChanged'))
+      
       // Use a small timeout to ensure state updates are processed
       setTimeout(() => {
         console.log('🔍 Attempting redirect to:', redirectUrl)

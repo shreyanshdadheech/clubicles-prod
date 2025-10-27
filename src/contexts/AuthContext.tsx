@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { verifyToken } from '@/lib/auth'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
 
 interface User {
   id: string
@@ -19,6 +19,7 @@ interface AuthContextType {
   signOut: () => void
   isSpaceOwner: boolean
   isAdmin: boolean
+  refreshAuth: () => Promise<void> // Add method to manually refresh auth state
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -28,12 +29,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [isSpaceOwner, setIsSpaceOwner] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const pathname = usePathname()
 
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
+  // Define checkAuth as a stable reference with useCallback
+  const checkAuth = useCallback(async () => {
     try {
       console.log('🔍 AuthContext: Starting auth check')
       
@@ -73,17 +72,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsAdmin(data.user.roles === 'admin')
         } else {
           console.log('🔍 AuthContext: No user data in response')
+          setUser(null)
+          setIsSpaceOwner(false)
+          setIsAdmin(false)
         }
       } else {
         console.log('🔍 AuthContext: API call failed, no user')
+        setUser(null)
+        setIsSpaceOwner(false)
+        setIsAdmin(false)
       }
     } catch (error) {
       console.error('🔍 AuthContext: Auth check failed:', error)
+      setUser(null)
+      setIsSpaceOwner(false)
+      setIsAdmin(false)
     } finally {
       console.log('🔍 AuthContext: Setting loading to false')
       setLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    checkAuth()
+    
+    // Listen for auth state changes from other parts of the app
+    const handleAuthStateChanged = () => {
+      console.log('🔍 AuthContext: Received auth state change event')
+      checkAuth()
+    }
+    
+    window.addEventListener('authStateChanged', handleAuthStateChanged)
+    
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthStateChanged)
+    }
+  }, [checkAuth])
+  
+  // Re-check auth on route changes
+  useEffect(() => {
+    if (pathname) {
+      console.log('🔍 AuthContext: Route changed to', pathname)
+      // Small delay to let cookies settle after login redirect
+      const timer = setTimeout(() => {
+        checkAuth()
+      }, 300)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [pathname, checkAuth])
+
+  // Expose refresh function for manual auth state updates
+  const refreshAuth = async () => {
+    await checkAuth()
   }
+
 
   const signOut = async () => {
     try {
@@ -110,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, isSpaceOwner, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, signOut, isSpaceOwner, isAdmin, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   )
