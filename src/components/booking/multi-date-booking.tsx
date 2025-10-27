@@ -37,6 +37,15 @@ const PROFESSIONAL_ROLES = [
   { id: 'prefer_not_to_say', name: 'Prefer Not to Say', color: 'text-white bg-black' } // Prefer Not to Say
 ]
 
+// Helper function to safely get number from seats (string or number)
+function getSeatsNumber(seats: number | string): number {
+  if (typeof seats === 'string') {
+    const num = parseInt(seats)
+    return isNaN(num) ? 0 : num
+  }
+  return seats
+}
+
 export function MultiDateBooking({
   selectedDates,
   onDatesChange,
@@ -198,7 +207,7 @@ export function MultiDateBooking({
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-white/60">
-                        {dateBooking.seats} seat{dateBooking.seats > 1 ? 's' : ''}
+                        {getSeatsNumber(dateBooking.seats)} seat{getSeatsNumber(dateBooking.seats) > 1 ? 's' : ''}
                       </div>
                       <div className="flex items-center space-x-1">
                         {(() => {
@@ -336,14 +345,12 @@ export function MultiDateBooking({
                     variant="outline"
                     size="icon"
                     onClick={() => {
-                      const currentSeats = typeof selectedDates[selectedDateIndex].seats === 'number' 
-                        ? selectedDates[selectedDateIndex].seats 
-                        : 1
+                      const currentSeats = getSeatsNumber(selectedDates[selectedDateIndex].seats)
                       if (currentSeats > 1) {
                         updateDateBooking(selectedDateIndex, 'seats', currentSeats - 1)
                       }
                     }}
-                    disabled={(typeof selectedDates[selectedDateIndex].seats === 'number' ? selectedDates[selectedDateIndex].seats : 1) <= 1}
+                    disabled={getSeatsNumber(selectedDates[selectedDateIndex].seats) <= 1}
                     className="bg-white/10 border-white/30 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed h-10 w-10"
                   >
                     <span className="text-xl">−</span>
@@ -387,14 +394,12 @@ export function MultiDateBooking({
                     variant="outline"
                     size="icon"
                     onClick={() => {
-                      const currentSeats = typeof selectedDates[selectedDateIndex].seats === 'number' 
-                        ? selectedDates[selectedDateIndex].seats 
-                        : 1
+                      const currentSeats = getSeatsNumber(selectedDates[selectedDateIndex].seats)
                       if (currentSeats < maxSeats) {
                         updateDateBooking(selectedDateIndex, 'seats', currentSeats + 1)
                       }
                     }}
-                    disabled={(typeof selectedDates[selectedDateIndex].seats === 'number' ? selectedDates[selectedDateIndex].seats : 1) >= maxSeats}
+                    disabled={getSeatsNumber(selectedDates[selectedDateIndex].seats) >= maxSeats}
                     className="bg-white/10 border-white/30 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed h-10 w-10"
                   >
                     <span className="text-xl">+</span>
@@ -416,7 +421,7 @@ export function MultiDateBooking({
                   }
                 </span>
                 <span className="text-white font-medium">
-                  {typeof selectedDates[selectedDateIndex].seats === 'number' ? selectedDates[selectedDateIndex].seats : 1} seat{typeof selectedDates[selectedDateIndex].seats === 'number' && selectedDates[selectedDateIndex].seats > 1 ? 's' : ''}
+                  {getSeatsNumber(selectedDates[selectedDateIndex].seats)} seat{getSeatsNumber(selectedDates[selectedDateIndex].seats) > 1 ? 's' : ''}
                 </span>
               </div>
               <div className="mt-1 text-xs text-gray-400">

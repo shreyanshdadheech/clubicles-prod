@@ -62,6 +62,18 @@ const config: Config = {
   			orbitron: [
   				'Orbitron',
   				'monospace'
+  			],
+  			doto: [
+  				'Doto',
+  				'ui-monospace',
+  				'SFMono-Regular',
+  				"'SF Mono'",
+  				'Menlo',
+  				'Monaco',
+  				'Consolas',
+  				"'Liberation Mono'",
+  				"'Courier New'",
+  				'monospace'
   			]
   		},
   		spacing: {

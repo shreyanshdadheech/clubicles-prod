@@ -1343,7 +1343,7 @@ export default function HomePage() {
             <div className="w-16 h-16 flex items-center justify-center">
               <img src="/logo.svg" alt="Clubicles Logo"  />
             </div>
-            <span className="font-orbitron text-4xl md:text-4xl font-black tracking-wider text-white">CLUBICLES</span>
+            <span className="font-doto text-4xl md:text-4xl font-black tracking-wider text-white">CLUBICLES</span>
           </div>
           <p className="text-gray-400 mb-6">
             Your premium co-working space platform
@@ -1358,6 +1358,20 @@ export default function HomePage() {
             <p className="text-gray-500 text-sm">
               © 2025 Clubicles. All rights reserved.
             </p>
+          </div>
+          {/* Mobile-only: POWERED BY IPNOTEC */}
+          <div className="mt-6 block sm:hidden">
+            <a
+              href="https://ipnotec.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-gray-800/80 border border-gray-600 px-2 py-1 text-xs text-white hover:text-white hover:border-gray-400 transition-colors duration-200 backdrop-blur-sm"
+            >
+              POWERED BY{" "}
+              <span className="text-orange-300">
+                IPNOTEC
+              </span>
+            </a>
           </div>
         </motion.div>
       </footer>
