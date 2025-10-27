@@ -1107,6 +1107,7 @@ function BookingsContent() {
                         <Button
                           variant="outline"
                           className="w-full border-red-600/50 text-red-400 hover:bg-red-900/30 hover:border-red-500 transition-all duration-200"
+                          onClick={() => window.location.href = '/support'}
                         >
                           <XCircle className="w-4 h-4 mr-2" />
                           Cancel Booking
