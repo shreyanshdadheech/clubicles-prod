@@ -356,6 +356,11 @@ function SignInContent() {
 
       // Clear loading state before redirect
       setLoading(false)
+      
+      // Set flag for homepage reload if redirecting to homepage
+      if (redirectUrl === '/' || redirectUrl.includes('home') || redirectUrl === '/dashboard') {
+        sessionStorage.setItem('shouldReloadAfterLogin', 'true')
+      }
 
       // Use a small timeout to ensure state updates are processed
       setTimeout(() => {

@@ -31,9 +31,13 @@ export default function HomePage() {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [hasReloaded, setHasReloaded] = useState(false)
 
-  // Reload page after login for fresh state
+  // Check if we should reload on mount (only once)
   useEffect(() => {
-    if (!loading && user && !hasReloaded) {
+    // Check if we just logged in (coming from redirect or auth callback)
+    const shouldReload = sessionStorage.getItem('shouldReloadAfterLogin')
+    
+    if (shouldReload === 'true' && !loading && user && !hasReloaded) {
+      sessionStorage.removeItem('shouldReloadAfterLogin')
       setHasReloaded(true)
       // Small delay to ensure auth state is fully set
       setTimeout(() => {
