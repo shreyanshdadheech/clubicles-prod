@@ -754,7 +754,6 @@ export default function HomePage() {
               {/* City Selection */}
               <div className="lg:col-span-1">
                 <label className="block text-sm font-semibold text-white mb-3 text-left">
-                  📍 Select City
                 </label>
                 <div className="relative">
                   <select
@@ -783,7 +782,6 @@ export default function HomePage() {
               {/* Search Input */}
               <div className="lg:col-span-2">
                 <label className="block text-sm font-semibold text-white mb-3 text-center">
-                  🔍 Search Spaces
                 </label>
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70 z-10" />
