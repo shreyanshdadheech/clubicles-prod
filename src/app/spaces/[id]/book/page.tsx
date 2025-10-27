@@ -15,6 +15,15 @@ import Link from "next/link"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 
+// Helper function to format date in local timezone (YYYY-MM-DD)
+// This avoids timezone issues when converting dates to ISO string
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 // Mock space data
 const mockSpaces: Space[] = [
   {
@@ -405,7 +414,7 @@ function BookSpaceContent() {
         confirmed: "true",
         spaceName: space.name,
         spaceAddress: space.address,
-        dates: selectedDates.map(d => d.toISOString().split('T')[0]).join(','),
+        dates: selectedDates.map(d => formatLocalDate(d)).join(','),
         bookingType,
         seats: seatsRequired.toString(),
         startTime: bookingType === "hourly" ? startTime : "",
@@ -507,16 +516,17 @@ function BookSpaceContent() {
                 booking_data: {
                   space_id: space.id,
                   user_id: user?.id || '', // Don't use 'guest', use empty string if no user
-                  date: dateBookings[0]?.date.toISOString().split('T')[0] || selectedDates[0].toISOString().split('T')[0], // Primary date
+                  // Use local date to avoid timezone issues
+                  date: dateBookings[0] ? formatLocalDate(dateBookings[0].date) : formatLocalDate(selectedDates[0]), // Primary date
                   dates: dateBookings.length > 0 ? dateBookings.map(booking => ({
-                    date: booking.date.toISOString().split('T')[0],
+                    date: formatLocalDate(booking.date),
                     start_time: booking.startTime,
                     end_time: booking.endTime,
                     seats: booking.seats,
                     booking_type: booking.bookingType,
                     professional_role: booking.professionalRole
                   })) : selectedDates.map(d => ({
-                    date: d.toISOString().split('T')[0],
+                    date: formatLocalDate(d),
                     start_time: bookingType === "hourly" ? startTime : "09:00",
                     end_time: bookingType === "hourly" ? endTime : "18:00",
                     seats: seatsRequired,
@@ -553,7 +563,7 @@ function BookSpaceContent() {
               confirmed: "true",
               spaceName: space.name,
               spaceAddress: space.address,
-              dates: dateBookings.length > 0 ? dateBookings.map(b => b.date.toISOString().split('T')[0]).join(',') : selectedDates.map(d => d.toISOString().split('T')[0]).join(','),
+              dates: dateBookings.length > 0 ? dateBookings.map(b => formatLocalDate(b.date)).join(',') : selectedDates.map(d => formatLocalDate(d)).join(','),
               bookingType: dateBookings[0]?.bookingType || bookingType,
               seats: dateBookings.length > 0 ? dateBookings.reduce((total, b) => total + b.seats, 0).toString() : seatsRequired.toString(),
               startTime: dateBookings[0]?.startTime || (bookingType === "hourly" ? startTime : ""),

@@ -325,23 +325,6 @@ export default function SpaceDetailsPage() {
           {/* Sidebar */}
           <div className="space-y-8">
             {/* Quick Book */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardHeader>
-                <CardTitle className="text-white">Quick Book</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  onClick={handleBookSeat}
-                  className="w-full bg-white text-black hover:bg-gray-200"
-                >
-                  Take a Seat
-                </Button>
-                <div className="text-center text-gray-400">
-                  <CalendarIcon className="h-5 w-5 mx-auto mb-2" />
-                  <p>Select a date to check availability</p>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Calendar */}
             <Card className="bg-white/10 backdrop-blur-md border-white/20">
@@ -368,7 +351,14 @@ export default function SpaceDetailsPage() {
                     <Button 
                       size="sm" 
                       className="w-full"
-                      onClick={() => router.push(`/spaces/${space.id}/book?date=${selectedDate.toISOString()}`)}
+                      onClick={() => {
+                        // Use local date to avoid timezone issues
+                        const year = selectedDate.getFullYear()
+                        const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+                        const day = String(selectedDate.getDate()).padStart(2, '0')
+                        const localDate = `${year}-${month}-${day}`
+                        router.push(`/spaces/${space.id}/book?date=${localDate}`)
+                      }}
                     >
                       Book for this date
                     </Button>

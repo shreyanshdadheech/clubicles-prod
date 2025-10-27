@@ -12,7 +12,7 @@ interface DateBooking {
   date: Date
   startTime: string
   endTime: string
-  seats: number
+  seats: number | string // Allow empty string during typing
   bookingType: "hourly" | "daily"
   professionalRole: string
 }
@@ -79,7 +79,12 @@ export function MultiDateBooking({
 
   const updateDateBooking = (index: number, field: keyof DateBooking, value: any) => {
     const updated = [...selectedDates]
-    updated[index] = { ...updated[index], [field]: value }
+    // For seats field, handle empty string during input
+    if (field === 'seats' && value === '') {
+      updated[index] = { ...updated[index], [field]: '' as any }
+    } else {
+      updated[index] = { ...updated[index], [field]: value }
+    }
     onDatesChange(updated)
   }
 
@@ -135,7 +140,7 @@ export function MultiDateBooking({
         <Card className="bg-white/10 backdrop-blur-md border-white/20">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-white">Selected Dates</CardTitle>
+              <CardTitle className="text-white">Select Time</CardTitle>
               <Button
                 onClick={addDateBooking}
                 variant="outline"
@@ -322,17 +327,79 @@ export function MultiDateBooking({
                 </>
               )}
 
-              {/* Seats Selection */}
+              {/* Seats Selection with Increment/Decrement Buttons */}
               <div className="space-y-2">
                 <Label className="text-white font-medium">Seats</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  max={maxSeats}
-                  value={selectedDates[selectedDateIndex].seats}
-                  onChange={(e) => updateDateBooking(selectedDateIndex, 'seats', parseInt(e.target.value) || 1)}
-                  className="bg-white/10 border-white/30 text-white focus:bg-white/15 focus:border-white/50"
-                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const currentSeats = typeof selectedDates[selectedDateIndex].seats === 'number' 
+                        ? selectedDates[selectedDateIndex].seats 
+                        : 1
+                      if (currentSeats > 1) {
+                        updateDateBooking(selectedDateIndex, 'seats', currentSeats - 1)
+                      }
+                    }}
+                    disabled={(typeof selectedDates[selectedDateIndex].seats === 'number' ? selectedDates[selectedDateIndex].seats : 1) <= 1}
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed h-10 w-10"
+                  >
+                    <span className="text-xl">−</span>
+                  </Button>
+                  <Input
+                    type="number"
+                    min="1"
+                    max={maxSeats}
+                    value={typeof selectedDates[selectedDateIndex].seats === 'string' 
+                      ? selectedDates[selectedDateIndex].seats 
+                      : selectedDates[selectedDateIndex].seats.toString()}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      // Allow empty string for user to delete and type
+                      if (value === '') {
+                        updateDateBooking(selectedDateIndex, 'seats', '')
+                        return
+                      }
+                      const numValue = parseInt(value)
+                      if (!isNaN(numValue) && numValue >= 1) {
+                        updateDateBooking(selectedDateIndex, 'seats', Math.min(numValue, maxSeats))
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // If empty, set to 1
+                      if (e.target.value === '') {
+                        updateDateBooking(selectedDateIndex, 'seats', 1)
+                      } else {
+                        // Ensure minimum 1 and maximum maxSeats
+                        const value = parseInt(e.target.value)
+                        if (!isNaN(value)) {
+                          const clampedValue = Math.max(1, Math.min(value, maxSeats))
+                          updateDateBooking(selectedDateIndex, 'seats', clampedValue)
+                        }
+                      }
+                    }}
+                    className="bg-white/10 border-white/30 text-white focus:bg-white/15 focus:border-white/50 text-center"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const currentSeats = typeof selectedDates[selectedDateIndex].seats === 'number' 
+                        ? selectedDates[selectedDateIndex].seats 
+                        : 1
+                      if (currentSeats < maxSeats) {
+                        updateDateBooking(selectedDateIndex, 'seats', currentSeats + 1)
+                      }
+                    }}
+                    disabled={(typeof selectedDates[selectedDateIndex].seats === 'number' ? selectedDates[selectedDateIndex].seats : 1) >= maxSeats}
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed h-10 w-10"
+                  >
+                    <span className="text-xl">+</span>
+                  </Button>
+                </div>
                 <p className="text-xs text-gray-400">
                   Max: {maxSeats} seats
                 </p>
@@ -349,7 +416,7 @@ export function MultiDateBooking({
                   }
                 </span>
                 <span className="text-white font-medium">
-                  {selectedDates[selectedDateIndex].seats} seat{selectedDates[selectedDateIndex].seats > 1 ? 's' : ''}
+                  {typeof selectedDates[selectedDateIndex].seats === 'number' ? selectedDates[selectedDateIndex].seats : 1} seat{typeof selectedDates[selectedDateIndex].seats === 'number' && selectedDates[selectedDateIndex].seats > 1 ? 's' : ''}
                 </span>
               </div>
               <div className="mt-1 text-xs text-gray-400">
