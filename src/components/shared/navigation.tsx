@@ -114,6 +114,49 @@ export function SharedNavigation() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-white/10 bg-black/90 backdrop-blur-xl">
             <div className="px-4 py-4 flex flex-col space-y-4">
+              {/* Auth Section - Show at top */}
+              {loading ? (
+                <div className="animate-pulse bg-gray-700 h-10 rounded"></div>
+              ) : user ? (
+                <>
+                  <div className="text-sm font-semibold text-white mb-2">
+                    {user.firstName || user.first_name || 'Welcome'}
+                  </div>
+                  <Link href={getDashboardLink()} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full rounded-xl bg-white text-black hover:bg-gray-100 font-semibold">
+                      {getDashboardButtonText()}
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      signOut()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="w-full rounded-xl border-white/30 bg-white/5 text-white hover:bg-white/15"
+                  >
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/signin" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-xl border-white/30 bg-white/5 text-white hover:bg-white/15">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full rounded-xl bg-white text-black hover:bg-gray-100 font-semibold">
+                      Join
+                    </Button>
+                  </Link>
+                </>
+              )}
+              
+              {/* Divider */}
+              <div className="border-t border-white/10 pt-4 mt-4"></div>
+              
+              {/* Navigation Links */}
               <a 
                 href="/#features" 
                 className="text-sm font-medium text-white/70 hover:text-white"
@@ -145,40 +188,6 @@ export function SharedNavigation() {
               >
                 About
               </Link>
-              <div className="pt-2 flex space-x-3">
-                {user ? (
-                  <>
-                    <Link href={getDashboardLink()} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full rounded-xl bg-white text-black hover:bg-gray-100 font-semibold">
-                        {getDashboardButtonText()}
-                      </Button>
-                    </Link>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        signOut()
-                        setMobileMenuOpen(false)
-                      }}
-                      className="flex-1 rounded-xl border-white/30 bg-white/5 text-white hover:bg-white/15"
-                    >
-                      Sign Out
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/signin" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full rounded-xl border-white/30 bg-white/5 text-white hover:bg-white/15">
-                        Sign In
-                      </Button>
-                    </Link>
-                    <Link href="/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full rounded-xl bg-white text-black hover:bg-gray-100 font-semibold">
-                        Join
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
             </div>
           </div>
         )}
