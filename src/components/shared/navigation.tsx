@@ -65,7 +65,7 @@ export function SharedNavigation() {
             <Link href="/about" className="hover:text-gray-300 transition-colors">About</Link>
           </div>
 
-          {/* Right Section - Auth Buttons */}
+          {/* Right Section - Auth Buttons (Desktop) */}
           <div className="hidden md:flex items-center space-x-4 flex-1 justify-end">
             {loading ? (
               <div className="animate-pulse bg-gray-700 h-8 w-20 rounded"></div>
@@ -100,14 +100,29 @@ export function SharedNavigation() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
-            aria-label="Toggle navigation"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          {/* Mobile View - Show Dashboard button for logged in users, Menu button for logged out */}
+          <div className="md:hidden flex items-center space-x-2">
+            {loading ? (
+              <div className="animate-pulse bg-gray-700 h-10 w-24 rounded"></div>
+            ) : user ? (
+              <Link href={getDashboardLink()}>
+                <Button className="rounded-xl bg-white text-black hover:bg-gray-100 font-semibold text-sm px-4 h-10">
+                  {getDashboardButtonText()}
+                </Button>
+              </Link>
+            ) : (
+              <>
+                {/* Menu Button for logged out users */}
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-white hover:bg-white/10"
+                  aria-label="Toggle navigation"
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Mobile Menu Panel */}

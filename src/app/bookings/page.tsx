@@ -224,6 +224,15 @@ function BookingsContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [selectedBooking, setSelectedBooking] = useState<UIBooking | null>(null)
+
+  // Helper function to check if booking date has passed
+  const isBookingExpired = (bookingDate: string): boolean => {
+    const booking = new Date(bookingDate)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Reset time to start of day
+    booking.setHours(0, 0, 0, 0)
+    return booking < today
+  }
   const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
@@ -895,16 +904,46 @@ function BookingsContent() {
 
                     {/* Redemption Code Section */}
                     {booking.redemption_code && (
-                      <div className="mt-6 p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg">
+                      <div className={`mt-6 p-4 rounded-lg ${
+                        isBookingExpired(booking.booking_date) 
+                          ? 'bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20' 
+                          : 'bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20'
+                      }`}>
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-white font-medium flex items-center">
-                            <QrCode className="w-4 h-4 mr-2 text-green-400" />
+                            <QrCode className={`w-4 h-4 mr-2 ${isBookingExpired(booking.booking_date) ? 'text-red-400' : 'text-green-400'}`} />
                             Booking Access Code
                           </h4>
-                          <Badge className={`${booking.is_redeemed ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'} text-xs px-2 py-1`}>
-                            {booking.is_redeemed ? 'Redeemed' : 'Pending'}
+                          <Badge className={`${
+                            isBookingExpired(booking.booking_date) 
+                              ? 'bg-red-500/20 text-red-300' 
+                              : booking.is_redeemed 
+                                ? 'bg-green-500/20 text-green-300' 
+                                : 'bg-yellow-500/20 text-yellow-300'
+                          } text-xs px-2 py-1`}>
+                            {isBookingExpired(booking.booking_date) ? 'Expired' : booking.is_redeemed ? 'Redeemed' : 'Pending'}
                           </Badge>
                         </div>
+                        
+                        {isBookingExpired(booking.booking_date) && (
+                          <div className="mb-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                            <p className="text-red-300 text-sm flex items-center gap-2 mb-2">
+                              <XCircle className="w-4 h-4" />
+                              This booking code has expired
+                            </p>
+                            <p className="text-red-200 text-xs">
+                              Please contact support for assistance
+                            </p>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="mt-2 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                              onClick={() => window.location.href = '/contact?subject=Expired+Booking+Code'}
+                            >
+                              Contact Support
+                            </Button>
+                          </div>
+                        )}
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                           <code className="flex-1 bg-black/30 px-3 py-2 rounded font-mono text-green-400 text-sm border border-gray-600">
                             {booking.redemption_code}

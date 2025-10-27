@@ -869,8 +869,10 @@ function SpacesPageContent() {
     }
 
     // City filter
-    if (selectedCity) {
-      filtered = filtered.filter((space) => space.city === selectedCity)
+    if (selectedCity && selectedCity !== '') {
+      filtered = filtered.filter((space) => 
+        space.city.toLowerCase() === selectedCity.toLowerCase()
+      )
     }
 
     // Price range filter
